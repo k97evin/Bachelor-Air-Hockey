@@ -131,5 +131,4 @@ while True:
         break
 
 cap.release()
-cv_file.release()
 cv2.destroyAllWindows()
