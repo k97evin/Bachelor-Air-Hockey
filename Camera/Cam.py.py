@@ -75,6 +75,7 @@ while True:
     # Read the camera frame
     ret, frame = cap.read()
     undistorted_frame = cv2.undistort(frame, old_camera_matrix, dist_matrix, dst=None, newCameraMatrix=optimal_camera_matrix)
+    # Defining ROI
     roi = undistorted_frame[min_y:max_y, min_x:max_x]
 
 
