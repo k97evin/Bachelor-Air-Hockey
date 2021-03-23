@@ -42,6 +42,9 @@ max_y = 0
 min_x = 10000
 min_y = 10000
 
+# Buffer size limit
+buffer_limit = 1
+
 # Capture the videocamera
 cap = cv2.VideoCapture(0)
 
@@ -75,7 +78,8 @@ while True:
 
 while True:
     """Defining ROI and detecting puck"""
-
+    
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, buffer_limit)
     # Read the camera frame
     ret, frame = cap.read()
     undistorted_frame = cv2.undistort(frame, old_camera_matrix, dist_matrix, dst=None, newCameraMatrix=optimal_camera_matrix)
