@@ -1,0 +1,95 @@
+<MainWindow>:
+    name: "Main"
+
+    Button:
+        text: "Play game"
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.75}
+
+        on_release:
+            root.manager.transition.direction = "left"
+            app.root.current = "Play_game"
+
+    Button:
+        text: "Live calculations"
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.6}
+
+        on_release:
+            root.manager.transition.direction = "left"
+            app.root.current = "Live_calculation"
+
+    Button:
+        text: "Camera"
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.45}
+
+        on_release:
+            root.manager.transition.direction = "left"
+            app.root.current = "Camera"
+
+    Button:
+        text: "Calibration"
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.3}
+
+        on_release:
+            root.manager.transition.direction = "left"
+            app.root.current = "Calibration"
+
+    Button:
+        text: "Settings"
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.15}
+
+        on_release:
+            root.manager.transition.direction = "left"
+            app.root.current = "Settings"
+
+
+<PlayGameWindow>:
+    name: "Play_game"
+
+    Button:
+        text: "Go Back"
+        on_release:
+            root.manager.transition.direction = "right"
+            app.root.current = "Main"
+
+<LiveCalculationWindow>:
+    name: "Live_calculation"
+
+    Button:
+        text: "Go Back"
+        on_release:
+            root.manager.transition.direction = "right"
+            app.root.current = "Main"
+
+<CameraWindow>:
+    name: "Camera"
+
+    Button:
+        text: "Go Back"
+        on_release:
+            root.manager.transition.direction = "right"
+            app.root.current = "Main"
+
+
+<CalibrationWindow>:
+    name: "Calibration"
+
+    Button:
+        text: "Go Back"
+        on_release:
+            root.manager.transition.direction = "right"
+            app.root.current = "Main"
+
+<SettingsWindow>:
+    name: "Settings"
+
+    Button:
+        text: "Go Back"
+        on_release:
+            root.manager.transition.direction = "right"
+            app.root.current = "Main"
+
