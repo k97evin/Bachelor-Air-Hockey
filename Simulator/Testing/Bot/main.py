@@ -6,8 +6,10 @@ from pymunk import Vec2d
 import puck_path
 import puck_velocity
 
+
 # Screen size
 width, height = 1200,600
+
 
 # Colors
 WHITE = (255,255,255)
@@ -16,6 +18,7 @@ GREEN = (0,255,0)
 BLUE = (0,0,255)
 ORANGE = (255,127,80)
 BLACK = (0,0,0)
+CYAN = (0, 255,255)
 
 # Table dimensions
 scaling = 7
@@ -51,6 +54,12 @@ clock = pygame.time.Clock()
 space = pymunk.Space()
 space.damping = 0.9
 FPS = 100
+
+# Draw text on display
+font = pygame.font.SysFont('freesansbold.ttf', 32)
+text = font.render('m/s: 0', True, CYAN)
+textRect = text.get_rect()
+textRect.center = (100, 16)
 
 
 
@@ -136,7 +145,6 @@ class Wall():
 
 
 
-
 class Bot():
     def __init__(self):
         self.body = pymunk.Body(body_type = pymunk.Body.KINEMATIC)
@@ -146,6 +154,7 @@ class Bot():
         self.shape.mass = 3
         self.shape.friction = 0.5
         self.shape.collision_type = 3
+      
 
         space.add(self.body,self.shape)
 
@@ -173,7 +182,7 @@ def draw_puck_path(points):
 
 # Declear objects
 puck = puck()
-
+a = puck.body.position
 
 wall_top = Wall([left,top],horisontal_wall_size)
 wall_left = Wall([left,top],vertical_wall_size)
@@ -193,6 +202,7 @@ running = True
 
 
 i = 0
+j = 0
 
 wall_hit = space.add_collision_handler(1,2)
 wall_hit.begin = puck.printe
@@ -205,6 +215,8 @@ start_angle = math.radians(90-start_angle)
 
 force_vec = [- math.sin(start_angle)*multiplier,- math.cos(start_angle)*multiplier]
 puck.apply_force2(force_vec)
+
+bot = Bot()
 
 
 while running:
@@ -237,6 +249,8 @@ while running:
     # Draw
     display.fill(BLACK)
 
+    bot.draw()
+
     draw_puck_path(points)
 
     puck.draw()
@@ -246,6 +260,8 @@ while running:
     wall_top.draw()
     wall_bottom.draw()
 
+    display.blit(text, textRect)
+
     pygame.display.update()
 
     # Step
@@ -253,6 +269,7 @@ while running:
     space.step(1/(FPS))
 
     i += 1
+    j += 1
 
     if i >= 1:
         puck_pos = puck.body.position
@@ -270,6 +287,13 @@ while running:
         #print("Her2: ",puck.body.velocity.angle_degrees, " og ", puck_dir.angle_degrees)
         #print(points)
         i = 0
+
+    if j >= 20:
+        text = font.render("v = " + str(round(puck.body.velocity.length/700,2)) + " m/s", True, CYAN)
+        textRect = text.get_rect()
+        textRect.center = (100, 16)
+        j = 0
+        
 
 
 pygame.quit()
