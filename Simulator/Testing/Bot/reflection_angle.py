@@ -2,7 +2,7 @@ import math
 
 
 # Maybe add puck velocity to check if the ball will collide in the next frame
-# Maybe calcolate reflection angle both directions
+# Maybe calculate reflection angle both directions
 
 # Table dimensions
 scaling = 7
