@@ -5,7 +5,6 @@ from pymunk import Vec2d
 
 # Screen size
 width, height = 1200,600
-
 # Table dimensions
 scaling = 7
 table_width = int(160*scaling)
