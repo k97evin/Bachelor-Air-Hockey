@@ -41,7 +41,7 @@ horisontal_wall_size = [table_width+2*wall_thickness, wall_thickness]
 
 
 # puck start values
-puck_start_pos = [1000,300]
+puck_start_pos = [1000,200]
 puck_activated = False
 puck_activated_pos = [0,0]
 
@@ -100,22 +100,22 @@ class puck():
     def printe(self,space, arbiter, data):
         vel = self.body.velocity
         pos = self.body.position
-        ang = self.body.velocity.angle_degrees
+        ang = self.body.velocity.angle
 
-        ang = 180 - abs(ang)
+        #ang = math.pi - abs(ang)
         
-        print("puck: POS: ",pos, " VEL: ",vel," ANG: ", ang)
+        print("puck: POS: ",pos, " VEL: ",vel," ANG: ", abs(ang))
 
         return True
     
     def printe2(self,space, arbiter, data):
         vel = self.body.velocity
         pos = self.body.position
-        ang = self.body.velocity.angle_degrees
+        ang = self.body.velocity.angle
 
-        ang = 180 - abs(ang)
+        #ang = math.pi - abs(ang)
         
-        print("puck2: POS: ",pos, " VEL: ",vel," ANG: ", ang)
+        print("puck2: POS: ",pos, " VEL: ",vel," ANG: ", abs(ang))
 
         return True
     
@@ -213,7 +213,9 @@ multiplier = 100000
 start_angle = 70
 start_angle = math.radians(90-start_angle)
 
-force_vec = [- math.sin(start_angle)*multiplier,- math.cos(start_angle)*multiplier]
+start_angle = -19*math.pi/20
+#force_vec = [- math.sin(start_angle)*multiplier,- math.cos(start_angle)*multiplier]
+force_vec = [math.cos(start_angle)*multiplier,math.sin(start_angle)*multiplier]
 puck.apply_force2(force_vec)
 
 bot = Bot()
