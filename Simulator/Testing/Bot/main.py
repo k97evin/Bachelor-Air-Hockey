@@ -213,7 +213,7 @@ multiplier = 100000
 start_angle = 70
 start_angle = math.radians(90-start_angle)
 
-start_angle = -19*math.pi/20
+start_angle = -10*math.pi/20
 #force_vec = [- math.sin(start_angle)*multiplier,- math.cos(start_angle)*multiplier]
 force_vec = [math.cos(start_angle)*multiplier,math.sin(start_angle)*multiplier]
 puck.apply_force2(force_vec)
@@ -282,7 +282,7 @@ while running:
 
 
         points = puck_path.path(puck_dir,puck_pos)
-        
+
         
 
         #print("Her: ", puck.body.velocity, " og ", puck_dir)
