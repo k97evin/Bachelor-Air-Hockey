@@ -53,7 +53,7 @@ display = pygame.display.set_mode((width,height))
 clock = pygame.time.Clock()
 space = pymunk.Space()
 space.damping = 0.9
-FPS = 100
+FPS = 90
 
 # Draw text on display
 font = pygame.font.SysFont('freesansbold.ttf', 32)
@@ -164,8 +164,8 @@ class Bot():
 
         pygame.draw.circle(display,RED,(int(x),int(y)),pusher_radius)
 
-    def move(self, mouseX, mouseY):
-        pass
+    def move(self, velocity):
+        self.body.velocity = velocity
 
 
 
@@ -217,7 +217,7 @@ force_vec = [- math.sin(start_angle)*multiplier,- math.cos(start_angle)*multipli
 puck.apply_force2(force_vec)
 
 bot = Bot()
-
+bot.move([0,100])
 
 while running:
     for event in pygame.event.get():
@@ -280,7 +280,7 @@ while running:
 
 
         points = puck_path.path(puck_dir,puck_pos)
-
+        
         
 
         #print("Her: ", puck.body.velocity, " og ", puck_dir)
