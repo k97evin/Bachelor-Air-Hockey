@@ -5,7 +5,7 @@ from pymunk import Vec2d
 
 import puck_path
 import puck_velocity
-
+from Puck_path import puck_path2
 
 # Screen size
 width, height = 1200,600
@@ -294,6 +294,7 @@ while running:
 
 
         points = puck_path.path(puck_dir,puck_pos)
+        points = puck_path2.path_points(puck_dir,puck_pos)
 
         bot_x = bot.body.position[0]
         bot_y = bot.body.position[1]
