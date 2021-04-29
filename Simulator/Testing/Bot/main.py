@@ -10,6 +10,8 @@ import puck_velocity
 # Screen size
 width, height = 1200,600
 
+center_y = height/2
+center_x = width/2
 
 # Colors
 WHITE = (255,255,255)
@@ -41,7 +43,7 @@ horisontal_wall_size = [table_width+2*wall_thickness, wall_thickness]
 
 
 # puck start values
-puck_start_pos = [1000,200]
+puck_start_pos = [1000,300]
 puck_activated = False
 puck_activated_pos = [0,0]
 
@@ -61,6 +63,9 @@ text = font.render('m/s: 0', True, CYAN)
 textRect = text.get_rect()
 textRect.center = (100, 16)
 
+print("Top: ", top)
+print("Bottom: ", bottom)
+print("Center: ", 45+ (bottom-top)/2)
 
 
 class puck():
@@ -166,8 +171,7 @@ class Bot():
 
     def move(self, velocity):
         self.body.velocity = velocity
-
-
+        
 
 def draw_puck_path(points):
 
@@ -213,13 +217,13 @@ multiplier = 100000
 start_angle = 70
 start_angle = math.radians(90-start_angle)
 
-start_angle = -10*math.pi/20
+start_angle = -15*math.pi/20
 #force_vec = [- math.sin(start_angle)*multiplier,- math.cos(start_angle)*multiplier]
 force_vec = [math.cos(start_angle)*multiplier,math.sin(start_angle)*multiplier]
 puck.apply_force2(force_vec)
 
 bot = Bot()
-bot.move([0,100])
+#bot.move([0,100])
 
 while running:
     for event in pygame.event.get():
@@ -264,6 +268,9 @@ while running:
 
     display.blit(text, textRect)
 
+    rect = pygame.Rect(left,center_y-105, 10, 210)
+    pygame.draw.rect(display, RED, rect)
+
     pygame.display.update()
 
     # Step
@@ -282,6 +289,25 @@ while running:
 
 
         points = puck_path.path(puck_dir,puck_pos)
+
+        bot_x = bot.body.position[0]
+        bot_y = bot.body.position[1]
+        puck_Fx = points[-1][0]
+        puck_Fy = points[-1][1]
+
+        if bot.body.position != points[-1]:
+
+            if abs(bot_y - puck_Fy) >= 5: 
+                if bot_y < puck_Fy:
+                    bot.move([0,500])
+            
+                elif bot_y > puck_Fy:
+                    bot.move([0,-500])
+
+                else: bot.move([0,0])
+
+            else: bot.move([0,0])
+
 
         
 
