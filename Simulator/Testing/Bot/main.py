@@ -100,6 +100,7 @@ class puck():
     def reset(self):
         self.body.position = puck_start_pos
         self.body.velocity = 0,0
+        bot.body.position = [100, 300]
 
 
     def printe(self,space, arbiter, data):
@@ -159,6 +160,8 @@ class Bot():
         self.shape.mass = 3
         self.shape.friction = 0.5
         self.shape.collision_type = 3
+        # [x_left, y_top, x_right, y_bottom]
+        self.boundries = [left + wall_thickness + 100, top + wall_thickness + pusher_radius, center_x, bottom - wall_thickness - pusher_radius]
       
 
         space.add(self.body,self.shape)
@@ -169,9 +172,11 @@ class Bot():
 
         pygame.draw.circle(display,RED,(int(x),int(y)),pusher_radius)
 
-    def move(self, velocity):
-        self.body.velocity = velocity
-        
+    def move(self, position, velocity):
+        if self.body.position[1] <= self.boundries[1] or self.body.position[1] >= self.boundries[3]:
+            self.body.velocity = [0,0]
+
+        else: self.body.velocity = velocity 
 
 def draw_puck_path(points):
 
@@ -295,19 +300,20 @@ while running:
         puck_Fx = points[-1][0]
         puck_Fy = points[-1][1]
 
-        if bot.body.position != points[-1]:
+        if len(points) > 1:
+            if bot.body.position != points[-1] :
 
-            if abs(bot_y - puck_Fy) >= 5: 
-                if bot_y < puck_Fy:
-                    bot.move([0,500])
-            
-                elif bot_y > puck_Fy:
-                    bot.move([0,-500])
+                if abs(bot_y - puck_Fy) >= 5: 
+                    if bot_y < puck_Fy:
+                        bot.move(bot.body.position, [0,500])
+                
+                    elif bot_y > puck_Fy:
+                        bot.move(bot.body.position, [0,-500])
 
-                else: bot.move([0,0])
+                    else: bot.move(bot.body.position, [0,0])
 
-            else: bot.move([0,0])
-
+                else: bot.move(bot.body.position, [0,0])
+        else: bot.move(bot.body.position, [0,0])
 
         
 
