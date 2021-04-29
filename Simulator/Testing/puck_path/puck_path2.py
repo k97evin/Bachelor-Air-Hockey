@@ -26,6 +26,8 @@ bottom = height-top
 # Puck center reachable positions
 puck_topPos = top + wall_thickness + puck_radius
 puck_bottomPos = bottom - wall_thickness - puck_radius
+
+print("Bottom: ", puck_bottomPos)
 # Pusher center reachable positions
 pusher_distFromWall = 10 #The closest the pusher can get to the wall
 puck_leftPos = left + wall_thickness + pusher_distFromWall + pusher_radius #kanskje ligge til: + puck_radius
@@ -44,7 +46,7 @@ def rotate_vel(velocity):
 
     rotated_velocity = velocity
     if angle_inn < 0:
-        rotated_velocity = velocity.rotated(angle_inn+angle_out)
+        rotated_velocity = velocity.rotated(-angle_inn+angle_out)
 
     if angle_inn > 0:
         rotated_velocity = velocity.rotated(-angle_inn-angle_out)
@@ -59,32 +61,39 @@ def path_points(puck_velocity,puck_pos):
     t = 0
     points = []
     calculate = False
-    #while P[0] > puck_leftPos:
-    points.append(P)
-    print(points)
-    totalTime += t
-    if last_velocity[0] < 0 and last_velocity[1] < 0:
-        print("ja")
-        t = (puck_topPos - puck_pos[1])/puck_velocity[1]
-        Px = puck_pos[0] + puck_velocity[0]*t
-        print(Px)
-        print(t)
+    while puck_velocity[0] < 0 and puck_pos[0] > puck_leftPos:
+        points.append(puck_pos)
+        print(points)
+        totalTime += t
+        if puck_velocity[0] < 0 and puck_velocity[1] < 0:
+            print("ja")
+            t = (puck_topPos - puck_pos[1])/puck_velocity[1]
+            Px = puck_pos[0] + puck_velocity[0]*t
+            print("Px:", Px)
+            print("t: ",t)
 
 
-        P  = [Px,puck_topPos]
-        print(P)
-        puck_velocity = rotate_vel(last_velocity)
-        print(puck_velocity)
-        calculate = True
+            puck_pos  = [Px,puck_topPos]
+            print(puck_pos)
+            last_velocity = puck_velocity
+            puck_velocity = rotate_vel(puck_velocity)
+            print("Puck vel:" , puck_velocity)
+            calculate = True
 
-    if puck_velocity[0] <= 0 and puck_velocity[1] > 0:
-        print("ja2")
-        t = (puck_bottomPos - puck_pos[1])/puck_velocity[1]
-        Px = puck_pos[0] + puck_velocity[0]*t
+        elif puck_velocity[0] <= 0 and puck_velocity[1] > 0:
+            print("ja2")
+            t = (puck_bottomPos - puck_pos[1])/puck_velocity[1]
+            Px = puck_pos[0] + puck_velocity[0]*t
+            print("Her:", puck_pos[0]," her2: ", puck_velocity[0])
+            print("Px:", Px)
+            print("t: ",t)
 
-        P = [Px,puck_bottomPos]
-        puck_velocity = rotate_vel(last_velocity)
-        calculate = True
+            puck_pos = [Px,puck_bottomPos]
+            print("puck_pos: ", puck_pos)
+            last_velocity = puck_velocity
+            puck_velocity = rotate_vel(puck_velocity)
+            print("puck velocity: ", puck_velocity)
+            calculate = True
 
 
     if calculate:
@@ -93,8 +102,8 @@ def path_points(puck_velocity,puck_pos):
 
         Py = points[-1][1]+last_velocity[1]*t
         
-        P = [puck_leftPos,Py]
-        points.append(P)
+        puck_pos = [puck_leftPos,Py]
+        points.append(puck_pos)
 
  
     #print(points)

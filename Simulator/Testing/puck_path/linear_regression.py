@@ -19,7 +19,7 @@ Y_pred = linear_regressor.predict(X)  # make predictions
 
 plt.scatter(X, Y)
 plt.plot(X, Y_pred, color='red')
-plt.show()
+#plt.show()
 
 a =linear_regressor.predict([[10]])
 print(type(a))
