@@ -94,4 +94,4 @@ def path_points(puck_velocity,puck_pos):
 
  
     #print(points)
-    return points
+    return points, totalTime, last_velocity

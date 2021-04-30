@@ -294,7 +294,7 @@ while running:
 
 
         points = puck_path.path(puck_dir,puck_pos)
-        points = puck_path2.path_points(puck_dir,puck_pos)
+        points, totalTime, last_velocity = puck_path2.path_points(puck_dir,puck_pos)
 
         bot_x = bot.body.position[0]
         bot_y = bot.body.position[1]
