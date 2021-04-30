@@ -63,6 +63,10 @@ text = font.render('m/s: 0', True, CYAN)
 textRect = text.get_rect()
 textRect.center = (100, 16)
 
+text2 = font.render('Attack mode: ' + "None", True, CYAN)
+textRect2 = text2.get_rect()
+textRect2.center = (500, 16)
+
 print("Top: ", top)
 print("Bottom: ", bottom)
 print("Center: ", 45+ (bottom-top)/2)
@@ -163,9 +167,9 @@ class Bot():
         # [x_left, y_top, x_right, y_bottom]
         self.boundries = [left + wall_thickness + 100, top + wall_thickness + pusher_radius, center_x, bottom - wall_thickness - pusher_radius]
       
-
         space.add(self.body,self.shape)
 
+        self.maxSpeed = 500
 
     def draw(self):
         x, y = self.body.position
@@ -177,6 +181,61 @@ class Bot():
             self.body.velocity = [0,0]
 
         else: self.body.velocity = velocity 
+    
+    def algorithm(self,points,times,last_velocity):
+
+        if len(points) > 1:
+            bot_pos = self.body.position
+            puck_end_pos = points[-1]
+
+
+            # If the puck is going to hit the goal
+            if abs(puck_end_pos[1]-center_y) < 15*7:
+
+                # Time for robot to block the goal 
+                tbot = abs(bot_pos[1]-puck_end_pos[1])/self.maxSpeed
+
+                # Time for puck to reach the goal
+                tpuck = times[-1]
+
+                tdiff = tpuck - tbot
+
+                if tdiff < 0.5:
+                    # Defence algorithm, maxspeed
+
+                    bot_x = self.body.position[0]
+                    bot_y = self.body.position[1]
+                    puck_Fx = points[-1][0]
+                    puck_Fy = points[-1][1]
+
+                    if len(points) > 1:
+                        if self.body.position != points[-1] :
+
+                            if abs(bot_y - puck_Fy) >= 5: 
+                                if bot_y < puck_Fy:
+                                    self.move(self.body.position, [0,500])
+                            
+                                elif bot_y > puck_Fy:
+                                    self.move(self.body.position, [0,-500])
+
+                                else: self.move(self.body.position, [0,0])
+
+                            else: self.move(self.body.position, [0,0])
+                    else: self.move(bot.body.position, [0,0])
+
+                    return "Defence"
+
+                elif tdiff < 2:
+                    # Attack algorithm, maxspeed
+                    return "Fast Attack"
+
+                elif tdiff < 10:
+                    # Attack algorithm, variable speed
+                    return "Slow Attack"
+        
+        return "None"
+
+
 
 def draw_puck_path(points):
 
@@ -272,6 +331,7 @@ while running:
     wall_bottom.draw()
 
     display.blit(text, textRect)
+    display.blit(text2, textRect2)
 
     rect = pygame.Rect(left,center_y-105, 10, 210)
     pygame.draw.rect(display, RED, rect)
@@ -289,32 +349,35 @@ while running:
         puck_pos = puck.body.position
 
         puck_dir = puck_velocity.velocity(puck_pos,last_puck_pos,puck_dir)
-
+        puck_dir = puck_dir/(1/FPS)
         last_puck_pos = puck_pos
 
 
         points = puck_path.path(puck_dir,puck_pos)
-        points, totalTime, last_velocity = puck_path2.path_points(puck_dir,puck_pos)
+        points, times, last_velocity = puck_path2.path_points(puck_dir,puck_pos)
+        #print(times)
 
-        bot_x = bot.body.position[0]
-        bot_y = bot.body.position[1]
-        puck_Fx = points[-1][0]
-        puck_Fy = points[-1][1]
+        attackMode = bot.algorithm(points,times,last_velocity)
 
-        if len(points) > 1:
-            if bot.body.position != points[-1] :
+        #bot_x = bot.body.position[0]
+        #bot_y = bot.body.position[1]
+        #puck_Fx = points[-1][0]
+        #puck_Fy = points[-1][1]
 
-                if abs(bot_y - puck_Fy) >= 5: 
-                    if bot_y < puck_Fy:
-                        bot.move(bot.body.position, [0,500])
+        # if len(points) > 1:
+        #     if bot.body.position != points[-1] :
+
+        #         if abs(bot_y - puck_Fy) >= 5: 
+        #             if bot_y < puck_Fy:
+        #                 bot.move(bot.body.position, [0,500])
                 
-                    elif bot_y > puck_Fy:
-                        bot.move(bot.body.position, [0,-500])
+        #             elif bot_y > puck_Fy:
+        #                 bot.move(bot.body.position, [0,-500])
 
-                    else: bot.move(bot.body.position, [0,0])
+        #             else: bot.move(bot.body.position, [0,0])
 
-                else: bot.move(bot.body.position, [0,0])
-        else: bot.move(bot.body.position, [0,0])
+        #         else: bot.move(bot.body.position, [0,0])
+        # else: bot.move(bot.body.position, [0,0])
 
         
 
@@ -327,6 +390,11 @@ while running:
         text = font.render("v = " + str(round(puck.body.velocity.length/700,2)) + " m/s", True, CYAN)
         textRect = text.get_rect()
         textRect.center = (100, 16)
+
+
+        text2 = font.render("Attack mode: " + attackMode, True, CYAN)
+        textRect2 = text2.get_rect()
+        textRect2.center = (500, 16)
         j = 0
         
 

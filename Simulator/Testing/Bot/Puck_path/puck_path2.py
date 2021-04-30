@@ -56,10 +56,12 @@ def path_points(puck_velocity,puck_pos):
     totalTime = 0
     t = 0
     points = []
+    times = []
     calculate = False
     while puck_velocity[0] < 0 and puck_pos[0] > puck_leftPos:
         points.append(puck_pos)
         totalTime += t
+        times.append(totalTime)
         if puck_velocity[0] < 0 and puck_velocity[1] < 0:
             t = (puck_topPos - puck_pos[1])/puck_velocity[1]
             Px = puck_pos[0] + puck_velocity[0]*t
@@ -88,10 +90,11 @@ def path_points(puck_velocity,puck_pos):
         
         puck_pos = [puck_leftPos,Py]
         points.append(puck_pos)
+        times.append(totalTime)
     
     else:
         points.append(puck_pos)
 
  
     #print(points)
-    return points, totalTime, last_velocity
+    return points, times, last_velocity
