@@ -1,1 +1,0 @@
-ck_path2 import path_points

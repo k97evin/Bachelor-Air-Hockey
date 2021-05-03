@@ -1,1 +1,1 @@
-from Puck_path import puck_path2
+from Puck_path import puck_path

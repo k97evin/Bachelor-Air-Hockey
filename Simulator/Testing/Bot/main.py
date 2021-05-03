@@ -2,9 +2,10 @@ import pygame
 import pymunk
 import math
 from pymunk import Vec2d
+import datetime
 
 import puck_path
-import puck_velocity
+from puck_velocity import velocity2
 from Puck_path import puck_path2
 
 # Screen size
@@ -173,7 +174,10 @@ class Bot():
         pygame.draw.circle(display,RED,(int(x),int(y)),pusher_radius)
 
     def move(self, position, velocity):
-        if self.body.position[1] <= self.boundries[1] or self.body.position[1] >= self.boundries[3]:
+        if self.body.position[1] <= self.boundries[1] and velocity[1] < 0:
+            self.body.velocity = [0,0]
+        
+        elif self.body.position[1] >= self.boundries[3] and velocity[1] > 0:
             self.body.velocity = [0,0]
 
         else: self.body.velocity = velocity 
@@ -201,6 +205,7 @@ wall_bottom = Wall([left,bottom-wall_thickness],horisontal_wall_size)
 
 
 puck_pos = []
+puck_pos_vel = []
 last_puck_pos = puck.body.position
 puck_dir = Vec2d.zero()
 points = []
@@ -212,6 +217,7 @@ running = True
 
 i = 0
 j = 0
+k = 0
 
 wall_hit = space.add_collision_handler(1,2)
 wall_hit.begin = puck.printe
@@ -222,13 +228,16 @@ multiplier = 100000
 start_angle = 70
 start_angle = math.radians(90-start_angle)
 
-start_angle = -15*math.pi/20
+start_angle = 15*math.pi/20
 #force_vec = [- math.sin(start_angle)*multiplier,- math.cos(start_angle)*multiplier]
 force_vec = [math.cos(start_angle)*multiplier,math.sin(start_angle)*multiplier]
 puck.apply_force2(force_vec)
 
 bot = Bot()
 #bot.move([0,100])
+
+
+#print(puck_pos_vel)
 
 while running:
     for event in pygame.event.get():
@@ -282,29 +291,49 @@ while running:
     clock.tick(FPS)
     space.step(1/(FPS))
 
+
+    # collect object in list
+    t = datetime.datetime.now()
+    puck_pos_vel.append([puck.body.position, t])
+
     i += 1
     j += 1
+    k += 1
+
+  
 
     if i >= 1:
         puck_pos = puck.body.position
+        #puck_dir = puck_velocity.velocity(puck_pos,last_puck_pos,puck_dir)
 
-        puck_dir = puck_velocity.velocity(puck_pos,last_puck_pos,puck_dir)
+        #last_puck_pos = puck_pos
 
-        last_puck_pos = puck_pos
-
-
-        points = puck_path.path(puck_dir,puck_pos)
-        points = puck_path2.path_points(puck_dir,puck_pos)
+        #points = puck_path.path(puck_dir,puck_pos)
+        #points = puck_path2.path_points(puck_dir,puck_pos)
 
         bot_x = bot.body.position[0]
         bot_y = bot.body.position[1]
-        puck_Fx = points[-1][0]
-        puck_Fy = points[-1][1]
+        #puck_Fx = points[-1][0]
+        #puck_Fy = points[-1][1]
+
+        if k > 4:
+            puck_vel = velocity2(puck_pos_vel)
+
+            points = puck_path.path(puck_vel, puck_pos)
+            points = puck_path2.path_points(puck_vel, puck_pos)
+
+            puck_Fx = points[-1][0]
+            puck_Fy = points[-1][1]
+
+            #print("points: " + str(points))
+            #print("vec: " + str(puck_vel))
+            #print(puck_pos_vel)
+            puck_pos_vel.pop(0)
 
         if len(points) > 1:
-            if bot.body.position != points[-1] :
+            if bot.body.position != points[-1]:
 
-                if abs(bot_y - puck_Fy) >= 5: 
+                if abs(bot_y - puck_Fy) >= 3 and points[-1][0] < points[-2][0]: 
                     if bot_y < puck_Fy:
                         bot.move(bot.body.position, [0,500])
                 
@@ -313,7 +342,13 @@ while running:
 
                     else: bot.move(bot.body.position, [0,0])
 
-                else: bot.move(bot.body.position, [0,0])
+                elif points[-1][0] > points[-2][0]: 
+                    bot.move(bot.body.position, [100,100])
+
+                else: 
+                    bot.move(bot.body.position, [0,0])
+
+
         else: bot.move(bot.body.position, [0,0])
 
         
