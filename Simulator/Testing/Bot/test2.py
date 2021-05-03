@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 steps_per_round = 400
 stepper_radius = int(2.5*7)
 
@@ -30,6 +31,9 @@ speedY = 20
 a,b,c,d = runStepperRelative(deltaX,deltaY,speedX,speedY)
 
 print(moveStepper(a,b,c,d))
+=======
+from Puck_path import puck_path
+>>>>>>> 4d1305633d3e89261a489fafa868dff3a44d571d
 =======
 from Puck_path import puck_path
 >>>>>>> 4d1305633d3e89261a489fafa868dff3a44d571d
