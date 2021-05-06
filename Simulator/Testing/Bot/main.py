@@ -184,11 +184,11 @@ class Bot():
 
         else: self.body.velocity = velocity 
     
-    def move2(selv):
+    def move2(self):
         bot_pos = self.body.position
         vel = self.body.velocity
         
-        if command == "center":
+        if self.command == "center":
             threshold = 5
             if bot_pos[1] - center_y > threshold:
                 vel = [0,-500]
@@ -196,12 +196,38 @@ class Bot():
                 vel = [0,500]
             else: 
                 vel = [0,0]
-
         
+        elif self.command == "defence":
+            pass
 
+    def move3(self):
+        path_points = self.path[0]
+        path_vel = self.path[1]
+        line_num = self.path[2]
 
+        if len(path_points) > 1:
+            if line_num != -1: #not at end position
+                bot_pos = self.body.position
+                bot_start_pos = path_points[line_num]
+                bot_target_pos = path_points[line_num+1]
 
-    def algorithm(self):
+                threshhold = 5
+                if abs(bot_pos[0]-bot_target_pos[0]) < threshhold and abs(bot_pos[1]-bot_target_pos[1]) < threshhold:
+                    line_num += 1
+
+                if line_num >= len(path_points):
+                    line_num = -1 #at target position
+                    self.body.velocity = [0,0]
+
+                else:
+                    vel_dir = path_points[line_num+1]-path_points[line_num]
+                    vel_dir = Vec2d(vel_dir[0],vel_dir[1])
+                    vel = vel_dir.normalized *path_vel[line_num]
+                    self.body.velocity = vel
+
+            else: self.body.velocity = [0,0]
+
+    def algorithm2(self):
         pass
 
     def CheckCommand(self,puck_last_velocity,previous_last_velocity,puck_end_pos,previous_puck_end_pos):
@@ -211,99 +237,78 @@ class Bot():
         puck_pos_prev = previous_puck_end_pos
 
         # If the puck is headed away from bot: go to center
-        if puck_vel[0] > 0:
+        if puck_vel[0] >= 0:
             self.command = "center"
-            self.move2()
         
         elif self.command == "center" and puck_vel[0] < 1:
             self.NewCommand()
 
-        elif abs(puck_vel[0]-puck_vel_prev[0]) > 5 or abs(puck_vel[1]-puck_vel_prev[1]) > 5 or abs(puck_pos[1]-puck_pos_prev[1]) > 5:
+        elif abs(puck_vel[0]-puck_vel_prev[0]) < 5 or abs(puck_vel[1]-puck_vel_prev[1]) < 5 or abs(puck_pos[1]-puck_pos_prev[1]) < 5:
+            pass #Run the same command
+
+        elif abs(puck_vel[0]-puck_vel_prev[0]) < 10 or abs(puck_vel[1]-puck_vel_prev[1]) < 10 or abs(puck_pos[1]-puck_pos_prev[1]) < 10:
             self.UpdateCommand()
 
-        elif abs(puck_vel[0]-puck_vel_prev[0]) > 10 or abs(puck_vel[1]-puck_vel_prev[1]) > 10 or abs(puck_pos[1]-puck_pos_prev[1]) > 5:
-            self.NewCommand()
         else:
-            pass 
+            self.NewCommand()
 
-        command = []
 
-        if previous_kommand == []:
-            command = NewCommand()
+        self.move3()
+
 
 
     def UpdateCommand(self):
         pass
-    def NewCommand(self,points,times,last_velocity,previous_command):
-        command = last_command
 
-        # If the puck is moving right:
-        if last_velocity[0] >= 0:
-            command = []
+    def NewCommand(self,points,times,puck_last_velocity):
         
-        # If puck is moving left (towards bot goal)
-        else: 
-            # If a puck trajectory was calculated
-            if len(points) > 1:
-                bot_pos = self.body.position
-                puck_end_pos = points[-1]
+        # If a puck trajectory was calculated
+        if len(points) > 1:
+            bot_pos = self.body.position
+            puck_end_pos = points[-1]
 
-                # Puck hits over or under goal:
-                if abs(puck_end_pos[1]-center_y) > 15*7:
-                    pass
-                
-                # Puck hits goal
-                else:
-                    # Time for robot to reach puck end pos in goal at max speed
-                    tbot = abs(bot_pos[1]-puck_end_pos[1])/self.maxSpeed
+            # Puck hits over or under goal:
+            if abs(puck_end_pos[1]-center_y) > 15*7:
+                self.command = "center"
+            
+            # Puck hits goal
+            else:
+                # Time for robot to reach puck end pos in goal at max speed
+                tbot = abs(bot_pos[1]-puck_end_pos[1])/self.maxSpeed
 
-                    # Time for puck to reach the goal
-                    tpuck = times[-1]
+                # Time for puck to reach the goal
+                tpuck = times[-1]
 
-                    # Excess time for robot after blocking goal
-                    tdiff = tpuck - tbot
+                # Excess time for robot after blocking goal
+                tdiff = tpuck - tbot
 
-                    # If the puck reaches the goal within 0.5s, Defence algoritm is chosen
-                    if tdiff < 0.5:
+                # If the puck reaches the goal within 0.5s, Defence algoritm is chosen
+                if tdiff < 0.5:
+                    self.command = "defence"
+                    bot_points = [self.body.position, [self.boundries[0],puck_end_pos[1]]]
+                    bot_speed = self.maxSpeed
+                    self.path = [bot_points,bot_speed,0]
 
-                        bot_pos[0] = self.body.position[0]
-                        bot_pos[1] = self.body.position[1]
-                        puck_Fx = points[-1][0]
-                        puck_Fy = points[-1][1]
-
-                        if bot_pos != points[-1] :
-
-                            if abs(bot_pos[1] - puck_end_pos[1]) >= 5: 
-                                if bot_pos[1] < puck_end_pos[1]:
-                                    
-                                    command.append([])
-                                    self.move(self.body.position, [0,500])
-                            
-                                elif bot_pos[1] > puck_end_pos[1]:
-                                    self.move(self.body.position, [0,-500])
-
-                                else: self.move(self.body.position, [0,0])
-
-                            else: self.move(self.body.position, [0,0])
-
-                        return "Defence"
-
+                elif tdiff < 2.0:
+                    self.command = "attack"
+                    bot_defence_point =  [self.boundries[0],puck_end_pos[1]]
                     
+                    #dont attack if the puck hits the wall too close to bot goal
+                    if points[-2][0] > 200:
+                        max_x_attack = 500
+                        
 
 
+                elif tdiff < 10.0:
+                    self.command = "defence/attack"
+
+                else:
+                    self.command = "center"
+
+        # Puck Trajectory was not calculated, go to center
+        else: self.command = "center"
 
 
-
-
-            # Puck Trajectory was not calculated, assuming same path 
-            else: command = last_command
-
-
-
-
-
-        return command
-    
     def algorithm(self,points,times,last_velocity):
 
         if len(points) > 1:
