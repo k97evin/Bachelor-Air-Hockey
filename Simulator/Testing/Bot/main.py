@@ -326,7 +326,7 @@ while running:
             puck_Fx = points[-1][0]
             puck_Fy = points[-1][1]
 
-            print(puck_vel[0])
+            #print(puck_vel[0])
             #print("points: " + str(points))
             #print("vec: " + str(puck_vel))
             #print(puck_pos_vel)
