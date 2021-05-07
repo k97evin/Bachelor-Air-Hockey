@@ -304,6 +304,7 @@ while running:
 
     if i >= 1:
         puck_pos = puck.body.position
+       
         #puck_dir = puck_velocity.velocity(puck_pos,last_puck_pos,puck_dir)
 
         #last_puck_pos = puck_pos
@@ -325,6 +326,7 @@ while running:
             puck_Fx = points[-1][0]
             puck_Fy = points[-1][1]
 
+            print(puck_vel[0])
             #print("points: " + str(points))
             #print("vec: " + str(puck_vel))
             #print(puck_pos_vel)
@@ -333,7 +335,7 @@ while running:
         if len(points) > 1:
             if bot.body.position != points[-1]:
 
-                if abs(bot_y - puck_Fy) >= 3 and points[-1][0] < points[-2][0]: 
+                if abs(bot_y - puck_Fy) >= 3 and puck_vel[0] <= 0 : 
                     if bot_y < puck_Fy:
                         bot.move(bot.body.position, [0,500])
                 
@@ -342,15 +344,19 @@ while running:
 
                     else: bot.move(bot.body.position, [0,0])
 
-                elif points[-1][0] > points[-2][0]: 
-                    bot.move(bot.body.position, [100,100])
-
-                else: 
-                    bot.move(bot.body.position, [0,0])
+                else:
+                        bot.move(bot.body.position, [0,0])
 
 
-        else: bot.move(bot.body.position, [0,0])
+        else: 
+            if bot_y < height/2:
+                bot.move(bot.body.position, [0,500])
 
+            elif bot_y > height/2:
+                bot.move(bot.body.position, [0,-500])
+
+            else: 
+                bot.move(bot.body.position, [0,0])
         
 
         #print("Her: ", puck.body.velocity, " og ", puck_dir)
