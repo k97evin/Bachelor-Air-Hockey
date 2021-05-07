@@ -1,4 +1,3 @@
-
 steps_per_round = 400
 stepper_radius = int(2.5*7)
 
@@ -30,4 +29,3 @@ speedY = 20
 a,b,c,d = runStepperRelative(deltaX,deltaY,speedX,speedY)
 
 print(moveStepper(a,b,c,d))
-
