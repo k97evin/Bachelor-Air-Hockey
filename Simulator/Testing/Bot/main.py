@@ -266,7 +266,7 @@ class Bot():
             print("Center")
         
         # If the puck is starting to go towards the bot: calculate a new command
-        elif self.command == "center" and puck_vel[0] < 1:
+        elif self.command == "center" and puck_vel[0] < 0:
             self.NewCommand(points,times,puck_last_velocity)
             print("New commando")
 
