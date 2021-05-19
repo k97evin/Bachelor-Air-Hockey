@@ -2,6 +2,7 @@ import pygame
 import pymunk
 import math
 from pymunk import Vec2d
+from pymunk import body
 
 import puck_path
 import puck_velocity
@@ -168,7 +169,7 @@ class Bot():
       
         space.add(self.body,self.shape)
 
-        self.maxSpeed = 500
+        self.maxSpeed = 1000
         self.command  = "center"
         # Bot path: [points to move to, speeds for each line between points, which line the bot is on]
         self.path = [self.body.position,self.maxSpeed,0]
@@ -194,7 +195,7 @@ class Bot():
         vel = self.body.velocity
         
         if self.command == "center":
-            threshold = 5
+            threshold = 7
             if bot_pos[1] - center_y > threshold:
                 vel = [0,-500]
             elif bot_pos[1] - center_y < threshold:
@@ -224,7 +225,7 @@ class Bot():
                 bot_start_pos = path_points[line_num]
                 bot_target_pos = path_points[line_num+1]
 
-                threshhold = 5
+                threshhold = 7
                 # Bot has reach next position within threshold
                 if abs(bot_pos[0]-bot_target_pos[0]) < threshhold and abs(bot_pos[1]-bot_target_pos[1]) < threshhold:
                     line_num += 1
@@ -304,13 +305,14 @@ class Bot():
 
 
             # Puck hits over or under goal:
-            if abs(puck_end_pos[1]-center_y) > 15*7:
+            if abs(puck_end_pos[1]-center_y) > 35*7:
                 self.command = "center"   #maybe change this later
             
             # Puck hits goal
             else:
                 # Time for robot to reach puck end pos in goal at max speed
-                tbot = abs(bot_pos[1]-puck_end_pos[1])/self.maxSpeed
+                #tbot = abs(bot_pos[1]-puck_end_pos[1])/self.maxSpeed
+                tbot = (bot_pos - puck_end_pos).length/self.maxSpeed 
 
                 # Time for puck to reach the goal
                 tpuck = times[-1]
@@ -363,7 +365,7 @@ class Bot():
 
                         self.command = "attack"
                         bot_points = [self.body.position, bot_defence_point, puck_middle_pos]
-                        bot_speeds= [self.maxSpeed,attack_velocity.length]
+                        bot_speeds = [self.maxSpeed,attack_velocity.length]
                         self.path = [bot_points,bot_speeds,0]
 
                         print("Path: ", self.path)
@@ -372,11 +374,22 @@ class Bot():
 
                 # ------ DEFENCE/ATTACK ------ #
 
-                elif tdiff < 10.0:
-                    self.command = "defence/attack"
-                    bot_points = [self.body.position, bot_defence_point]
-                    bot_speed = self.maxSpeed
-                    self.path = [bot_points,[bot_speed],0]
+                elif tdiff < 3.0:
+
+                    if points[0][0] > center_x - 100:
+                        self.command = "defence/attack"
+                        bot_points = [self.body.position, bot_defence_point]
+                        bot_speed = self.maxSpeed
+                        self.path = [bot_points,[bot_speed],0]
+                        
+                    else: 
+                        self.command = "defence/attack"
+                        
+                        t_puck = (points[-1] - points[0])/puck_last_velocity[0]
+                        
+
+                        bot_points = [self.body.position, bot_defence_point, ] 
+
                 
                 # If the puck takes too long to reach bot goal
                 else:
