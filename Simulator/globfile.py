@@ -34,8 +34,18 @@ right = width-left
 top = (height-table_height-2*wall_thickness)/2
 bottom = height-top
 
-vertical_wall_size = [wall_thickness, table_height+2*wall_thickness]
-horisontal_wall_size = [table_width+2*wall_thickness, wall_thickness]
+
+
+
+# Puck center reachable positions
+puck_topPos = top + wall_thickness + puck_radius
+puck_bottomPos = bottom - wall_thickness - puck_radius
+
+# Pusher/bot center reachable positions
+pusher_distFromWall = 10 #The closest the pusher can get to the wall
+puck_leftPos = left + wall_thickness + pusher_distFromWall + pusher_radius #kanskje ligge til: + puck_radius
+
+
 
 
 # puck start values
@@ -44,12 +54,3 @@ puck_activated = False
 puck_activated_pos = [0,0]
 
 bot_start_pos = [100,100]
-
-
-# Pygame and Pymunk setup
-pygame.init()
-display = pygame.display.set_mode((width,height))
-clock = pygame.time.Clock()
-space = pymunk.Space()
-space.damping = 0.9
-FPS = 90

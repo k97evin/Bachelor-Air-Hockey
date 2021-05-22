@@ -1,7 +1,7 @@
 from globfile import *
 
-class puck():
-    def __init__(self):
+class Puck():
+    def __init__(self,space):
         self.body = pymunk.Body()
         self.body.position = puck_start_pos
         self.shape = pymunk.Circle(self.body,puck_radius)
@@ -13,8 +13,7 @@ class puck():
         
         space.add(self.body,self.shape)
 
-    def draw(self):
-        global puck_activated, puck_activated_pos
+    def draw(self,display,puck_activated,puck_activated_pos):
         x, y = self.body.position
         pygame.draw.circle(display,ORANGE,(int(x),int(y)),puck_radius)
 
@@ -60,7 +59,7 @@ class puck():
 
 # ------- PUCK VELOCITY ------- #
 # Puck velocity is calculated based of the last few points 
-def velocity2(puck_pos):
+def velocity(puck_pos):
     
     vec = [Vec2d(pos[0],pos[1]) for pos,t in puck_pos]
     t = [t for pos,t in puck_pos]
@@ -113,18 +112,20 @@ def rotate_vel(velocity):
 # and end up. It returns all of the collision points with the walls.
 def path_points(puck_velocity,puck_pos):
 
-    P = puck_pos
     last_velocity = puck_velocity
     totalTime = 0
     t = 0
     points = []
+    times = []
     calculate = False
     while puck_velocity[0] < 0 and puck_pos[0] > puck_leftPos:
         points.append(puck_pos)
         totalTime += t
+        times.append(totalTime)
         if puck_velocity[0] < 0 and puck_velocity[1] < 0:
             t = (puck_topPos - puck_pos[1])/puck_velocity[1]
             Px = puck_pos[0] + puck_velocity[0]*t
+
 
             puck_pos  = [Px,puck_topPos]
             last_velocity = puck_velocity
@@ -140,6 +141,7 @@ def path_points(puck_velocity,puck_pos):
             puck_velocity = rotate_vel(puck_velocity)
             calculate = True
 
+
     if calculate:
         t = (puck_leftPos-points[-1][0])/last_velocity[0]
         totalTime += t
@@ -148,16 +150,18 @@ def path_points(puck_velocity,puck_pos):
         
         puck_pos = [puck_leftPos,Py]
         points.append(puck_pos)
+        times.append(totalTime)
     
     else:
         points.append(puck_pos)
 
+ 
     #print(points)
-    return points
+    return points, times, last_velocity
 
 
 # ------- DRAWING PUCK PATH ------- #
-def draw_path(points):
+def draw_path(points,display):
     nr_points = len(points)
 
     if nr_points >= 2:

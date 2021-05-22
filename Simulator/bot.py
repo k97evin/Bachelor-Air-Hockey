@@ -2,7 +2,7 @@ from globfile import *
 
 
 class Bot():
-    def __init__(self):
+    def __init__(self,space):
         self.body = pymunk.Body(body_type = pymunk.Body.KINEMATIC)
         self.body.position = bot_start_pos
         self.shape = pymunk.Circle(self.body,pusher_radius)
@@ -22,7 +22,7 @@ class Bot():
         self.previous_puck_vel = 0
         self.previous_puck_end_pos = [0,0]
 
-    def draw(self):
+    def draw(self,display):
         x, y = self.body.position
 
         pygame.draw.circle(display,RED,(int(x),int(y)),pusher_radius)
