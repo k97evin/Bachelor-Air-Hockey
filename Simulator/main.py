@@ -19,6 +19,11 @@ textRect = text.get_rect()
 textRect.center = (100, 16)
 
 
+text2 = font.render('Attack mode: ' + "None", True, CYAN)
+textRect2 = text2.get_rect()
+textRect2.center = (500, 16)
+
+
 class Wall():
     def __init__(self, pos,size):
 
@@ -127,6 +132,7 @@ while running:
     wall_bottom.draw()
 
     display.blit(text, textRect)
+    display.blit(text2, textRect2)
 
     rect = pygame.Rect(left,center_y-105, 10, 210)
     pygame.draw.rect(display, RED, rect)
