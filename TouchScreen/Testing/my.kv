@@ -67,13 +67,108 @@
 
 <CameraWindow>:
     name: "Camera"
+    slide_text_hue_min: slider_hue_min
+    slide_text_hue_max: slider_hue_max
+    slide_text_sat_min: slider_sat_min
+    slide_text_sat_max: slider_sat_max
+    slide_text_val_min: slider_val_min
+    slide_text_val_max: slider_val_max
+    btn_blue: btn_blue
+    
 
     Button:
         text: "Go Back"
+        size_hint: 0.2, 0.1
+        pos_hint: {"center_x":0.15, "y":0.05}
         on_release:
             root.manager.transition.direction = "right"
             app.root.current = "Main"
 
+    Button:
+        text: "Apply"
+        size_hint: 0.2, 0.1
+        pos_hint: {"center_x": 0.85, "y":0.05}
+        # Do something - approve change - popup
+
+    Button:
+        id: btn_blue
+        text: "Blue"
+        size_hint: 0.2, 0.1
+        pos_hint: {"center_x":0.5, "y":0.05}
+        # Change values to somewhat blue
+
+    BoxLayout:
+        orientation: "vertical"
+        pos_hint: {"x": 0, "y": 0.6}
+        size_hint: 0.5, 0.4
+
+        Label:
+            id: slider_hue_min
+            text: "Hue min: "
+            pos_hint: {"x": 0.6, "y": 0}
+            font_size: root.font_size
+        Slider:
+            min: 0
+            max: 179
+            #value: 0 
+            step: 1
+            orientation: "horizontal"
+            on_value: root.slide_hue_min(*args)
+        
+        Label:
+            id: slider_hue_max
+            text: "Hue max: "
+            pos_hint: {"x":0.6, "y": 0}
+            font_size: root.font_size
+        Slider:
+            min: 0
+            max: 179
+            orientation: "horizontal"
+            on_value: root.slide_hue_max(*args)
+
+        Label:
+            id: slider_sat_min
+            text: "Sat min: "
+            pos_hint: {"x":0.6, "y": 0}
+            font_size: root.font_size
+        Slider:
+            min: 0
+            max: 255
+            orientation: "horizontal"
+            on_value: root.slide_sat_min(*args)
+
+        Label:
+            id: slider_sat_max
+            text: "Sat max: "
+            pos_hint: {"x":0.6, "y": 0}
+            font_size: root.font_size
+        Slider:
+            min: 0
+            max: 255
+            orientation: "horizontal"
+            on_value: root.slide_sat_max(*args)
+
+        Label:
+            id: slider_val_min
+            text: "Val min: "
+            pos_hint: {"x":0.6, "y": 0}
+            font_size: root.font_size
+        Slider:
+            min: 0
+            max: 255
+            orientation: "horizontal"
+            on_value: root.slide_val_min(*args)
+        
+        Label:
+            id: slider_val_max
+            text: "Val max: "
+            pos_hint: {"x":0.6, "y": 0}
+            font_size: root.font_size
+        Slider:
+            min: 0
+            max: 255
+            orientation: "horizontal"
+            on_value: root.slide_val_max(*args)
 
 <CalibrationWindow>:
     name: "Calibration"
