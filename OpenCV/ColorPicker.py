@@ -38,10 +38,11 @@ while True:
     imgResult = cv2.bitwise_and(img, img, mask=mask) # compares two pictures and adds to all white
 
 
-
+    
     cv2.imshow("Original", img)
     cv2.imshow("HSV", imgHSV)
     cv2.imshow("Mask", mask)
     cv2.imshow("Result", imgResult)
+    cv2.imwrite('test.png', mask)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break

@@ -1,3 +1,12 @@
+WindowManager:
+    MainWindow:
+    PlayGameWindow:
+    LiveCalculationWindow:
+    CameraWindow:
+    CalibrationWindow:
+    SettingsWindow:
+
+
 <MainWindow>:
     name: "Main"
 
@@ -49,12 +58,36 @@
 
 <PlayGameWindow>:
     name: "Play_game"
-
     Button:
-        text: "Go Back"
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.75}    
+        text: "to main"
         on_release:
             root.manager.transition.direction = "right"
-            app.root.current = "Main"
+            app.root.current = "Main"            
+    Button:
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.5}
+        text: "Hit me"
+        on_release: root.Counter_function()
+
+    Button:
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.3}
+        text: "Thread"
+        on_release: root.First_thread()
+
+    Button:
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.0}
+        text: "Thread"
+        on_release: root.test()
+
+    Label:
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.15}
+        id: lbl
+        text: "Numbers"
 
 <LiveCalculationWindow>:
     name: "Live_calculation"
@@ -73,7 +106,6 @@
     slide_text_sat_max: slider_sat_max
     slide_text_val_min: slider_val_min
     slide_text_val_max: slider_val_max
-    btn_blue: btn_blue
     
 
     Button:
@@ -84,6 +116,7 @@
             root.manager.transition.direction = "right"
             app.root.current = "Main"
 
+
     Button:
         text: "Apply"
         size_hint: 0.2, 0.1
@@ -91,20 +124,35 @@
         # Do something - approve change - popup
 
     Button:
-        id: btn_blue
+        text: "Last values"
+        size_hint: 0.15, 0.075
+        pos_hint: {"center_x":0.875, "y":0.5}
+        # Load info from file
+
+    Button:
         text: "Blue"
-        size_hint: 0.2, 0.1
-        pos_hint: {"center_x":0.5, "y":0.05}
+        size_hint: 0.15, 0.075
+        pos_hint: {"center_x":0.875, "y":0.4}
         # Change values to somewhat blue
+
+    Button:
+        text: "Yellow"
+        size_hint: 0.15, 0.075
+        pos_hint: {"center_x":0.875, "y":0.3}
+
+    Button:
+        text: "Green"
+        size_hint: 0.15, 0.075
+        pos_hint: {"center_x":0.875, "y":0.2}
 
     BoxLayout:
         orientation: "vertical"
         pos_hint: {"x": 0, "y": 0.6}
-        size_hint: 0.5, 0.4
+        size_hint: 0.8, 0.4
 
         Label:
             id: slider_hue_min
-            text: "Hue min: "
+            text: "Hue min: 0"
             pos_hint: {"x": 0.6, "y": 0}
             font_size: root.font_size
         Slider:
@@ -117,7 +165,7 @@
         
         Label:
             id: slider_hue_max
-            text: "Hue max: "
+            text: "Hue max: 0"
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
@@ -128,7 +176,7 @@
 
         Label:
             id: slider_sat_min
-            text: "Sat min: "
+            text: "Sat min: 0"
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
@@ -139,7 +187,7 @@
 
         Label:
             id: slider_sat_max
-            text: "Sat max: "
+            text: "Sat max: 0"
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
@@ -150,7 +198,7 @@
 
         Label:
             id: slider_val_min
-            text: "Val min: "
+            text: "Val min: 0"
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
@@ -161,7 +209,7 @@
         
         Label:
             id: slider_val_max
-            text: "Val max: "
+            text: "Val max: 0"
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
@@ -169,6 +217,18 @@
             max: 255
             orientation: "horizontal"
             on_value: root.slide_val_max(*args)
+
+    BoxLayout:
+        orientation: "vertical"
+        pos_hint: {"center_x": 0.5, "y": 0.2}
+        size_hint: 0.6, 0.3
+
+        Image:
+            source: 'test.png'
+            allow_stretch: False
+            keep_ratio: False
+
+
 
 <CalibrationWindow>:
     name: "Calibration"
