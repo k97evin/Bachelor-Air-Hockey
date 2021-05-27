@@ -100,12 +100,12 @@ WindowManager:
 
 <CameraWindow>:
     name: "Camera"
-    slide_text_hue_min: slider_hue_min
-    slide_text_hue_max: slider_hue_max
-    slide_text_sat_min: slider_sat_min
-    slide_text_sat_max: slider_sat_max
-    slide_text_val_min: slider_val_min
-    slide_text_val_max: slider_val_max
+    #slide_text_hue_min: slider_hue_min
+    #slide_text_hue_max: slider_hue_max
+    #slide_text_sat_min: slider_sat_min
+    #slide_text_sat_max: slider_sat_max
+    #slide_text_val_min: slider_val_min
+    #slide_text_val_max: slider_val_max
     
 
     Button:
@@ -133,7 +133,13 @@ WindowManager:
         text: "Blue"
         size_hint: 0.15, 0.075
         pos_hint: {"center_x":0.875, "y":0.4}
-        # Change values to somewhat blue
+        id: btn_blue
+        on_press:
+            root.btn_blue_press()
+
+
+            #root.slide_hue_min(*args)
+            #root.thread()
 
     Button:
         text: "Yellow"
@@ -151,72 +157,96 @@ WindowManager:
         size_hint: 0.8, 0.4
 
         Label:
-            id: slider_hue_min
-            text: "Hue min: 0"
+            id: hue_min_label
+            text: "Hue min: " + str(root.hue_min)
             pos_hint: {"x": 0.6, "y": 0}
             font_size: root.font_size
         Slider:
             min: 0
             max: 179
-            #value: 0 
+            id: hue_min_slider
+            value: root.hue_min
             step: 1
             orientation: "horizontal"
-            on_value: root.slide_hue_min(*args)
+            on_value: 
+                root.slide_hue_min(*args)
+                root.thread()
+                root.updateImage()
         
         Label:
-            id: slider_hue_max
-            text: "Hue max: 0"
+            id: hue_max_label
+            text: "Hue max: " + str(root.hue_max)
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
             min: 0
             max: 179
+            id: hue_max_slider
+            value: root.hue_max
             orientation: "horizontal"
-            on_value: root.slide_hue_max(*args)
+            on_value: 
+                root.slide_hue_max(*args)
+                root.thread()
 
         Label:
-            id: slider_sat_min
-            text: "Sat min: 0"
+            id: sat_min_label
+            text: "Sat min: " + str(root.sat_min)
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
             min: 0
             max: 255
+            id: sat_min_slider
+            value: root.sat_min
             orientation: "horizontal"
-            on_value: root.slide_sat_min(*args)
+            on_value: 
+                root.slide_sat_min(*args)
+                root.thread()
 
         Label:
-            id: slider_sat_max
-            text: "Sat max: 0"
+            id: sat_max_label
+            text: "Sat max: " + str(root.sat_max)
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
             min: 0
             max: 255
+            id: sat_max_slider
+            value: root.sat_max
             orientation: "horizontal"
-            on_value: root.slide_sat_max(*args)
+            on_value: 
+                root.slide_sat_max(*args)
+                root.thread()
 
         Label:
-            id: slider_val_min
-            text: "Val min: 0"
+            id: val_min_label
+            text: "Val min: " + str(root.val_min)
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
             min: 0
             max: 255
+            id: val_min_slider
+            value: root.val_min
             orientation: "horizontal"
-            on_value: root.slide_val_min(*args)
+            on_value: 
+                root.slide_val_min(*args)
+                root.thread()
         
         Label:
-            id: slider_val_max
-            text: "Val max: 0"
+            id: val_max_label
+            text: "Val max: " + str(root.val_max)
             pos_hint: {"x":0.6, "y": 0}
             font_size: root.font_size
         Slider:
             min: 0
             max: 255
+            id: val_max_slider
+            value: root.val_max
             orientation: "horizontal"
-            on_value: root.slide_val_max(*args)
+            on_value: 
+                root.slide_val_max(*args)
+                root.thread()
 
     BoxLayout:
         orientation: "vertical"
@@ -224,7 +254,8 @@ WindowManager:
         size_hint: 0.6, 0.3
 
         Image:
-            source: 'test.png'
+            source: root.img_src
+            id: image
             allow_stretch: False
             keep_ratio: False
 
