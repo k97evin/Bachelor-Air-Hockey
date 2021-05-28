@@ -97,8 +97,16 @@ class CameraWindow(Screen):
         self.ids.image.source = 'test.png'
 
     def updateImage(self):
-        self.img_src = 'test.png'
-        self.ids.image.source = 'test.png'
+        self.img_src = self.ids.image.source
+
+        if (self.img_src == 'mr_small.png'):
+            self.img_src = 'test.png'
+            print("IFIFIFIFIIFIFI")
+        else:
+            self.img_src = 'mr_small.png'
+            print("ELSELESLELLSE")
+
+        self.ids.image.source = self.img_src
 
 
     def slide_hue_min(self, *args):
@@ -153,6 +161,8 @@ class CameraWindow(Screen):
             upper = np.array([self.hue_max, self.sat_max, self.val_max])
             mask = cv2.inRange(imgHSV,lower,upper)
             cv2.imwrite('test.png', mask)
+            cv2.imwrite('test1.png', mask)
+            cv2.destroyAllWindows()
         else:
             print("nope niks neeei - prøv igjen")
 
