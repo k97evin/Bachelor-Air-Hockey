@@ -15,6 +15,9 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
 from kivy.core.window import Window
+from kivy.graphics.texture import Texture
+from kivy.clock import Clock
+from kivy.uix.image import Image
 
 from kivy.properties import NumericProperty
 
@@ -55,6 +58,7 @@ class PlayGameWindow(Screen):
 
 class LiveCalculationWindow(Screen):
     pass
+        
 
 
 
@@ -69,13 +73,14 @@ class CameraWindow(Screen):
     val_max = 255
     img_src = 'test.png'
 
+    
 
     def btn_blue_press(self):
         self.hue_min = 100
         self.hue_max = 120
         self.sat_min = 185
         self.sat_max = 255
-        self.val_min = 0
+        self.val_min = 71
         self.val_max = 255
 
         self.ids.hue_min_label.text = "Hue min: " + str(self.hue_min)
@@ -93,20 +98,42 @@ class CameraWindow(Screen):
         self.ids.val_max_label.text = "val max: " + str(self.val_max)
         self.ids.val_max_slider.value = self.val_max  
 
-        self.img_src = 'test.png'
-        self.ids.image.source = 'test.png'
+        #self.img_src = 'test.png'
+        #self.ids.image.source = 'test.png'
 
-    def updateImage(self):
-        self.img_src = self.ids.image.source
+    # def updateImage(self):
+    #     self.img_src = self.ids.image.source
 
-        if (self.img_src == 'mr_small.png'):
-            self.img_src = 'test.png'
-            print("IFIFIFIFIIFIFI")
-        else:
-            self.img_src = 'mr_small.png'
-            print("ELSELESLELLSE")
+    #     if (self.img_src == 'mr_small.png'):
+    #         self.img_src = 'test.png'
+    #         print("IFIFIFIFIIFIFI")
+    #     else:
+    #         self.img_src = 'mr_small.png'
+    #         print("ELSELESLELLSE")
 
-        self.ids.image.source = self.img_src
+    #     self.ids.image.source = self.img_src
+    
+    def threadCapture(self):
+        threading.Thread(target = self.buildIMG).start()
+
+    def buildIMG(self):
+        #self.img1=Image()
+        self.capture = cv2.VideoCapture(0)
+        Clock.schedule_interval(self.update, 1.0/30.0)
+
+    def update(self, dt):
+        ret, frame = self.capture.read()
+        imgHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        lower = np.array([self.hue_min, self.sat_min, self.val_min])
+        upper = np.array([self.hue_max, self.sat_max, self.val_max])
+        frame = cv2.inRange(imgHSV,lower,upper)
+
+        texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='luminance') 
+        #if working on RASPBERRY PI, use colorfmt='rgba' here instead, but stick with "bgr" in blit_buffer. 
+        texture.blit_buffer(frame.tobytes(order=None), colorfmt='luminance', bufferfmt='ubyte')
+        texture.flip_vertical()
+        self.ids.image.texture = texture
+        
 
 
     def slide_hue_min(self, *args):
@@ -201,6 +228,7 @@ def testenoe(objekt):
 
 class MyApp(App):
     def build(self):
+        
         return kv
 
 

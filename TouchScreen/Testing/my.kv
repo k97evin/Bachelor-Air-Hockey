@@ -92,11 +92,11 @@ WindowManager:
 <LiveCalculationWindow>:
     name: "Live_calculation"
 
-    Button:
-        text: "Go Back"
-        on_release:
-            root.manager.transition.direction = "right"
-            app.root.current = "Main"
+    # Button:
+    #     text: "Go Back"
+    #     on_release:
+    #         root.manager.transition.direction = "right"
+    #         app.root.current = "Main"
 
 <CameraWindow>:
     name: "Camera"
@@ -114,7 +114,14 @@ WindowManager:
         pos_hint: {"center_x":0.15, "y":0.05}
         on_release:
             root.manager.transition.direction = "right"
-            app.root.current = "Main"
+            app.root.current = "Main"        
+
+    Button:
+        text: "Start color calibration"
+        size_hint: 0.2, 0.1
+        pos_hint: {"center_x":0.5, "y":0.05}
+        on_release:
+            root.threadCapture()
 
 
     Button:
@@ -170,8 +177,8 @@ WindowManager:
             orientation: "horizontal"
             on_value: 
                 root.slide_hue_min(*args)
-                root.thread()
-                root.updateImage()
+                #root.thread()
+                #root.updateImage()
         
         Label:
             id: hue_max_label
@@ -186,7 +193,7 @@ WindowManager:
             orientation: "horizontal"
             on_value: 
                 root.slide_hue_max(*args)
-                root.thread()
+                #root.thread()
 
         Label:
             id: sat_min_label
@@ -201,7 +208,7 @@ WindowManager:
             orientation: "horizontal"
             on_value: 
                 root.slide_sat_min(*args)
-                root.thread()
+                #root.thread()
 
         Label:
             id: sat_max_label
@@ -216,7 +223,7 @@ WindowManager:
             orientation: "horizontal"
             on_value: 
                 root.slide_sat_max(*args)
-                root.thread()
+                #root.thread()
 
         Label:
             id: val_min_label
@@ -231,7 +238,7 @@ WindowManager:
             orientation: "horizontal"
             on_value: 
                 root.slide_val_min(*args)
-                root.thread()
+                #root.thread()
         
         Label:
             id: val_max_label
@@ -246,7 +253,7 @@ WindowManager:
             orientation: "horizontal"
             on_value: 
                 root.slide_val_max(*args)
-                root.thread()
+                #root.thread()
 
     BoxLayout:
         orientation: "vertical"
@@ -258,6 +265,8 @@ WindowManager:
             id: image
             allow_stretch: False
             keep_ratio: False
+        #Image:
+
 
 
 
