@@ -114,21 +114,25 @@ WindowManager:
         pos_hint: {"center_x":0.15, "y":0.05}
         on_release:
             root.manager.transition.direction = "right"
-            app.root.current = "Main"        
+            app.root.current = "Main"  
+            root.StopCaptureThread()      
 
     Button:
         text: "Start color calibration"
         size_hint: 0.2, 0.1
         pos_hint: {"center_x":0.5, "y":0.05}
         on_release:
-            root.threadCapture()
+            root.CaptureThread()
+            root.GetColors()
 
 
     Button:
         text: "Apply"
         size_hint: 0.2, 0.1
         pos_hint: {"center_x": 0.85, "y":0.05}
-        # Do something - approve change - popup
+        on_release:
+            root.UpdateColors()
+
 
     Button:
         text: "Last values"

@@ -63,7 +63,8 @@ class LiveCalculationWindow(Screen):
 
 
 class CameraWindow(Screen):
-
+    lock = threading.Lock()
+    
     font_size = 15
     hue_min = 50
     hue_max = 170
@@ -73,9 +74,87 @@ class CameraWindow(Screen):
     val_max = 255
     img_src = 'test.png'
 
-    
+    def GetColors(self):
+        f = open('test_color.txt', 'r')
+        data = []
+        read = f.readline()
+        doneReading = False
 
-    def btn_blue_press(self):
+        while(not doneReading):
+            data.append(read)
+            read = f.readline()
+            
+            if "END" in read:
+                data.append(read)
+                f.close()
+                doneReading = True
+                break
+        self.lock.acquire()
+        for color in data:
+            if 'LAST' in color:
+                self.last_col = color[color.find("LAST: ") + len("LAST: "): color.find(";")]
+                last_col_val = self.last_col.split(" ")
+                self.hue_min = int(last_col_val[0])
+                self.hue_max = int(last_col_val[1])
+                self.sat_min = int(last_col_val[2])
+                self.sat_max = int(last_col_val[3])
+                self.val_min = int(last_col_val[4])
+                self.val_max = int(last_col_val[5])
+
+            if 'BLUE' in color:
+                self.blue_col = color[color.find("BLUE: ") + len("BLUE: "): color.find(";")]
+                blue_col_val = self.blue_col.split(" ")
+                self.hue_min_blue = int(blue_col_val[0])
+                self.hue_max_blue = int(blue_col_val[1])
+                self.sat_min_blue = int(blue_col_val[2])
+                self.sat_max_blue = int(blue_col_val[3])
+                self.val_min_blue = int(blue_col_val[4])
+                self.val_max_blue = int(blue_col_val[5])
+
+            if 'YELLOW' in color:
+                self.yellow_col = color[color.find("YELLOW: ") + len("YELLOW: "): color.find(";")]
+                yellow_col_val = self.yellow_col.split(" ")
+                self.hue_min_yellow = int(yellow_col_val[0])
+                self.hue_max_yellow = int(yellow_col_val[1])
+                self.sat_min_yellow = int(yellow_col_val[2])
+                self.sat_max_yellow = int(yellow_col_val[3])
+                self.val_min_yellow = int(yellow_col_val[4])
+                self.val_max_yellow = int(yellow_col_val[5])
+
+            if 'GREEN' in color:
+                self.green_col = color[color.find("GREEN: ") + len("GREEN: "): color.find(";")]
+                green_col_val = self.green_col.split(" ")
+                self.hue_min_green = int(green_col_val[0])
+                self.hue_max_green = int(green_col_val[1])
+                self.sat_min_green = int(green_col_val[2])
+                self.sat_max_green = int(green_col_val[3])
+                self.val_min_green = int(green_col_val[4])
+                self.val_max_green = int(green_col_val[5])
+        self.lock.release()
+        print(data)
+
+    def UpdateColors(self): # oppdatere last_col (alle verdier) + funksjon for alle knapper + 
+    
+        self.last_col = "{0} {1} {2} {3} {4} {5}".format(self.hue_min, self.hue_max, self.sat_min, self.sat_max, self.val_min, self.val_max) 
+        #str([self.hue_min, self.hue_max, self.sat_min, self.sat_max, self.val_min, self.val_max])
+        print(self.last_col)
+        data = [
+            "COLOR: h_min h_max s_min s_max v_min v_max;",
+            " ",
+            "LAST: " + self.last_col + ";",
+            "BLUE: " + self.blue_col + ";",
+            "YELLOW: " + self.yellow_col + ";",
+            "GREEN: " + self.green_col + ";",
+            "END"]
+
+        f = open('test_color.txt', 'w')
+
+        for l in range((len(data))):
+            f.write(data[l] + "\n")
+        f.close()
+
+
+    def btn_blue_press(self): # FIKSFIKSFIKS # ID argument for knapp
         self.hue_min = 100
         self.hue_max = 120
         self.sat_min = 185
@@ -101,32 +180,29 @@ class CameraWindow(Screen):
         #self.img_src = 'test.png'
         #self.ids.image.source = 'test.png'
 
-    # def updateImage(self):
-    #     self.img_src = self.ids.image.source
 
-    #     if (self.img_src == 'mr_small.png'):
-    #         self.img_src = 'test.png'
-    #         print("IFIFIFIFIIFIFI")
-    #     else:
-    #         self.img_src = 'mr_small.png'
-    #         print("ELSELESLELLSE")
+    def CaptureThread(self):
+        self.CapThread = threading.Thread(target= self.buildIMG,daemon=True)
+        self.CapThread.start()
 
-    #     self.ids.image.source = self.img_src
+    def StopCaptureThread(self):
+        Clock.unschedule(self.Update)
     
-    def threadCapture(self):
-        threading.Thread(target = self.buildIMG).start()
 
     def buildIMG(self):
         #self.img1=Image()
         self.capture = cv2.VideoCapture(0)
-        Clock.schedule_interval(self.update, 1.0/30.0)
+        Clock.schedule_interval(self.Update, 1.0/30.0)
+        
 
-    def update(self, dt):
+    def Update(self, dt):
         ret, frame = self.capture.read()
         imgHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        self.lock.acquire()
         lower = np.array([self.hue_min, self.sat_min, self.val_min])
         upper = np.array([self.hue_max, self.sat_max, self.val_max])
-        frame = cv2.inRange(imgHSV,lower,upper)
+        self.lock.release()
+        frame = cv2.inRange(imgHSV, lower, upper)
 
         texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='luminance') 
         #if working on RASPBERRY PI, use colorfmt='rgba' here instead, but stick with "bgr" in blit_buffer. 
@@ -169,11 +245,11 @@ class CameraWindow(Screen):
         self.ids.val_max_label.text = "Val max: " + str(self.val_max)
         #self.ColorPicker()
 
-
+    # Unused ATM
     def thread(self):
         threading.Thread(target = self.ColorPicker).start()
 
-        #ColorPicker
+        #ColorPicker ikke i bruk
     def ColorPicker(self):
         frameWidth = 640
         frameHeight = 480
@@ -228,7 +304,6 @@ def testenoe(objekt):
 
 class MyApp(App):
     def build(self):
-        
         return kv
 
 
