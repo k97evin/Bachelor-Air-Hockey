@@ -1,10 +1,23 @@
 WindowManager:
+    id: window_manager
     MainWindow:
+        id: main_window
+        manager: window_manager
     PlayGameWindow:
+        id: playgame_window
+        manager: window_manager
     LiveCalculationWindow:
-    CameraWindow:
+        id: livecalcultaion_window
+        manager: window_manager
+    ColorDetectionWindow:
+        id: colordetection_window
+        manager: window_manager
     CalibrationWindow:
+        id: calibration_window
+        manager: window_manager
     SettingsWindow:
+        id: settings_window
+        manager: window_manager
 
 
 <MainWindow>:
@@ -29,13 +42,14 @@ WindowManager:
             app.root.current = "Live_calculation"
 
     Button:
-        text: "Camera"
+        text: "Color detection"
         size_hint: 0.5, 0.1
         pos_hint: {"center_x":0.5, "y":0.45}
 
         on_release:
             root.manager.transition.direction = "left"
-            app.root.current = "Camera"
+            app.root.current = "Color_detection"
+            #root.GetColorsToColorWindow()
 
     Button:
         text: "Calibration"
@@ -55,6 +69,12 @@ WindowManager:
             root.manager.transition.direction = "left"
             app.root.current = "Settings"
 
+    Button:
+        text: "Quit"
+        size_hint: 0.15, 0.1
+        pos_hint: {"center_x":0.9, "y":0.05}
+        on_release:
+            root.QuitApp()
 
 <PlayGameWindow>:
     name: "Play_game"
@@ -64,7 +84,72 @@ WindowManager:
         text: "to main"
         on_release:
             root.manager.transition.direction = "right"
-            app.root.current = "Main"            
+            app.root.current = "Main"        
+
+    Button:
+        text: "Solenoid"
+        pos_hint: {"center_x":0.5, "y":0.1}
+        size_hint: 0.2, 0.1
+        on_press:
+            # solenoid high    
+        on_release:
+            # solenoid low
+
+    Button:
+        text: "+"
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.2, "y":0.5}    
+        on_release:
+            root.ScorePlayer(1)
+    Button:
+        text: "-"
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.35, "y":0.5}    
+        on_release:
+            root.ScorePlayer(-1)
+
+    Label:
+        id: score_player
+        font_size: root.font_size_score
+        pos_hint: {"center_x":0.5, "y":0.3}
+        size_hint: 0.2, 0.2
+        text: "0"
+
+    Button:
+        text: "+"
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.5, "y":0.5}    
+        on_release:
+            root.ScoreRobot(1)
+    Button:
+        text: "-"
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.65, "y":0.5}    
+        on_release:
+            root.ScoreRobot(-1)
+    Label:
+        id: score_robot
+        font_size: root.font_size_score
+        pos_hint: {"center_x":0.65, "y":0.3}
+        size_hint: 0.2, 0.2
+        text: "0"
+
+    Label:
+        font_size: root.font_size_score
+        pos_hint: {"center_x":0.575, "y":0.32}
+        size_hint: 0.2, 0.2
+        text: ":"
+    
+
+<LiveCalculationWindow>:
+    name: "Live_calculation"
+
+    Button:
+        text: "Go Back"
+        on_release:
+            root.manager.transition.direction = "right"
+            app.root.current = "Main"
+
     Button:
         size_hint: 0.5, 0.1
         pos_hint: {"center_x":0.5, "y":0.5}
@@ -89,17 +174,8 @@ WindowManager:
         id: lbl
         text: "Numbers"
 
-<LiveCalculationWindow>:
-    name: "Live_calculation"
-
-    # Button:
-    #     text: "Go Back"
-    #     on_release:
-    #         root.manager.transition.direction = "right"
-    #         app.root.current = "Main"
-
-<CameraWindow>:
-    name: "Camera"
+<ColorDetectionWindow>:
+    name: "Color_detection"
     #slide_text_hue_min: slider_hue_min
     #slide_text_hue_max: slider_hue_max
     #slide_text_sat_min: slider_sat_min
@@ -120,6 +196,7 @@ WindowManager:
     Button:
         text: "Start color calibration"
         size_hint: 0.2, 0.1
+        id: btn_start_color
         pos_hint: {"center_x":0.5, "y":0.05}
         on_release:
             root.CaptureThread()
@@ -129,16 +206,23 @@ WindowManager:
     Button:
         text: "Apply"
         size_hint: 0.2, 0.1
+        id: btn_apply
         pos_hint: {"center_x": 0.85, "y":0.05}
+        disabled: True
         on_release:
             root.UpdateColors()
+            root.GetColors()
+            root.StopCaptureThread()
+            disabled: True
 
 
     Button:
         text: "Last values"
         size_hint: 0.15, 0.075
         pos_hint: {"center_x":0.875, "y":0.5}
-        # Load info from file
+        on_press:
+            root.GetColors()
+            root.ChangeHSVColor("LAST")
 
     Button:
         text: "Blue"
@@ -146,21 +230,25 @@ WindowManager:
         pos_hint: {"center_x":0.875, "y":0.4}
         id: btn_blue
         on_press:
-            root.btn_blue_press()
-
-
+            root.GetColors()
+            root.ChangeHSVColor("BLUE")
             #root.slide_hue_min(*args)
-            #root.thread()
 
     Button:
         text: "Yellow"
         size_hint: 0.15, 0.075
         pos_hint: {"center_x":0.875, "y":0.3}
+        on_press:
+            root.GetColors()
+            root.ChangeHSVColor("YELLOW")
 
     Button:
         text: "Green"
         size_hint: 0.15, 0.075
         pos_hint: {"center_x":0.875, "y":0.2}
+        on_press:
+            root.GetColors()
+            root.ChangeHSVColor("GREEN")
 
     BoxLayout:
         orientation: "vertical"
@@ -278,10 +366,156 @@ WindowManager:
     name: "Calibration"
 
     Button:
-        text: "Go Back"
+        text: "Back"
+        size_hint: 0.15, 0.1
+        pos_hint: {"center_x":0.1, "y":0.05}
         on_release:
             root.manager.transition.direction = "right"
             app.root.current = "Main"
+
+    Button:
+        text: "New homing"
+        size_hint: 0.15, 0.1
+        pos_hint: {"center_x":0.3, "y":0.05}
+        on_release:
+            
+    Label:
+        id: pos_x
+        text: "X: "
+        font_size: root.font_size_pos
+        size_hint: 0.15, 0.1
+        pos_hint: {"center_x":0.05, "y":0.88}
+    Label:
+        id: pos_y
+        text: "Y: "
+        font_size: root.font_size_pos
+        size_hint: 0.15, 0.1
+        pos_hint: {"center_x":0.05, "y":0.78}
+
+    
+    # NUMPAD
+    BoxLayout:
+        orientation: "horizontal"
+        size_hint: 0.15, 0.1
+        pos_hint: {"center_x": 0.9, "y": 0.72}
+        TextInput:
+            text: "0"
+            font_size: 30
+            id: text_x_pos
+            halign: "right"
+            foreground_color: 1, 0, 0
+            
+    BoxLayout:
+        orientation: "horizontal"
+        size_hint: 0.15, 0.1
+        pos_hint: {"center_x": 0.9, "y": 0.62}
+        TextInput:
+            text: "0"
+            font_size: 30
+            id: text_y_pos
+            halign: "right"
+            foreground_color: 1,0,0
+    Button:
+        text: "GO TO"
+        id: GoTo_btn
+        font_size: root.font_size_buttons
+        size_hint: 0.3, 0.1
+        pos_hint: {"center_x": 0.825, "y": 0.84}
+        color: 1,0,0
+        on_release:
+            root.GoTo_btn()
+    Button:
+        text: "X :"
+        font_size: root.font_size_buttons
+        size_hint: 0.13, 0.1
+        pos_hint: {"center_x":0.74, "y":0.72}
+        on_press:
+            root.ChooseXYvalue(0)
+    Button:
+        text: "Y :"
+        font_size: root.font_size_buttons
+        size_hint: 0.13, 0.1
+        pos_hint: {"center_x":0.74, "y":0.62}
+        on_press:
+            root.ChooseXYvalue(1)
+
+    Button:
+        text: "1"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.725, "y":0.5}
+        on_press:
+            root.NumPadPress(1)
+    Button:
+        text: "2"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.825, "y":0.5}
+        on_press:
+            root.NumPadPress(2)
+    Button:
+        text: "3"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.925, "y":0.5}
+        on_press:
+            root.NumPadPress(3)
+    Button:
+        text: "4"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.725, "y":0.4}
+        on_press:
+            root.NumPadPress(4)
+    Button:
+        text: "5"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.825, "y":0.4}
+        on_press:
+            root.NumPadPress(5)
+    Button:
+        text: "6"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.925, "y":0.4}
+        on_press:
+            root.NumPadPress(6)
+    Button:
+        text: "7"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.725, "y":0.3}
+        on_press:
+            root.NumPadPress(7)
+    Button:
+        text: "8"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.825, "y":0.3}
+        on_press:
+            root.NumPadPress(8)
+    Button:
+        text: "9"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.925, "y":0.3}
+        on_press:
+            root.NumPadPress(7)
+    Button:
+        text: "CLEAR"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.725, "y":0.2}
+        on_press:
+            root.NumPadPress(-1)
+    Button:
+        text: "0"
+        font_size: root.font_size_buttons
+        size_hint: 0.1, 0.1
+        pos_hint: {"center_x":0.825, "y":0.2}
+        on_press:
+            root.NumPadPress(0)
 
 <SettingsWindow>:
     name: "Settings"
@@ -292,3 +526,27 @@ WindowManager:
             root.manager.transition.direction = "right"
             app.root.current = "Main"
 
+
+<GoToPopopWindow>:
+    Label:
+        text: "Out of boundaries!"
+        size_hint: 0.6, 0.1
+        pos_hint: {"center_x":0.5, "center_y":0.85}
+        font_size: 17
+    Label:
+        text: "X: [ 70 , 620 ]"
+        size_hint: 0.6, 0.1
+        pos_hint: {"center_x":0.5, "center_y":0.65}
+        font_size: 17
+    Label:
+        text: "Y: [ 65 , 735 ]"
+        size_hint: 0.6, 0.1
+        pos_hint: {"center_x":0.5, "center_y":0.5}
+        font_size: 17
+    Label:
+        text: "Touch outside box to continue"
+        size_hint: 0.6, 0.1
+        pos_hint: {"center_x":0.5, "center_y":0.3}
+        font_size: 17
+
+    

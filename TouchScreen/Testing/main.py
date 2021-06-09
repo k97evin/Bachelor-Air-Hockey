@@ -18,6 +18,7 @@ from kivy.core.window import Window
 from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from kivy.uix.image import Image
+from kivy.uix.popup import Popup
 
 from kivy.properties import NumericProperty
 
@@ -37,9 +38,45 @@ Config.write()
 
 
 class MainWindow(Screen):
-    pass
+    #colorW = ObjectProperty()
+    def QuitApp(self):
+        App.get_running_app().stop()
+        Window.close()
+    
+    # def GetColorsToColorWindow(self):
+    #     self.manager.current = "ColorDetectionWindow"
+    #     self.GetColors()
 
 class PlayGameWindow(Screen):
+
+    font_size_score = 125
+
+    def ScorePlayer(self, increment):
+        self.score_player = int(self.ids.score_player.text)
+        if increment == 1:
+            self.score_player += 1
+        else:
+            self.score_player -= 1
+        if self.score_player <= 0:
+            self.score_player = 0
+        elif self.score_player >= 9:
+            self.score_player = 9
+        self.ids.score_player.text = "{}".format(self.score_player)
+
+    def ScoreRobot(self, increment):
+        self.score_robot = int(self.ids.score_robot.text)
+        if increment == 1:
+            self.score_robot += 1
+        else:
+            self.score_robot -= 1
+        if self.score_robot <= 0:
+            self.score_robot = 0
+        elif self.score_robot >= 9:
+            self.score_robot = 9
+        self.ids.score_robot.text = "{}".format(self.score_robot)
+    
+
+class LiveCalculationWindow(Screen):
     counter = NumericProperty(0)
     
     def Counter_function(self):
@@ -55,14 +92,11 @@ class PlayGameWindow(Screen):
     def test(self):
         threading.Thread(target= testenoe,args=[self],daemon=True).start()  #daemon gjør sånn at når main avslutter blir denne tråden drept
         #testenoe(self)
-
-class LiveCalculationWindow(Screen):
-    pass
         
 
 
 
-class CameraWindow(Screen):
+class ColorDetectionWindow(Screen):
     lock = threading.Lock()
     
     font_size = 15
@@ -73,94 +107,152 @@ class CameraWindow(Screen):
     val_min = 0
     val_max = 255
     img_src = 'test.png'
+    
 
     def GetColors(self):
-        f = open('test_color.txt', 'r')
-        data = []
-        read = f.readline()
-        doneReading = False
-
-        while(not doneReading):
-            data.append(read)
+        try:
+            f = open('test_color.txt', 'r')
+            data = []
             read = f.readline()
-            
-            if "END" in read:
+            doneReading = False
+
+            while(not doneReading):
                 data.append(read)
-                f.close()
-                doneReading = True
-                break
-        self.lock.acquire()
-        for color in data:
-            if 'LAST' in color:
-                self.last_col = color[color.find("LAST: ") + len("LAST: "): color.find(";")]
-                last_col_val = self.last_col.split(" ")
-                self.hue_min = int(last_col_val[0])
-                self.hue_max = int(last_col_val[1])
-                self.sat_min = int(last_col_val[2])
-                self.sat_max = int(last_col_val[3])
-                self.val_min = int(last_col_val[4])
-                self.val_max = int(last_col_val[5])
+                read = f.readline()
+                
+                if "END" in read:
+                    data.append(read)
+                    f.close()
+                    doneReading = True
+                    break
+            self.lock.acquire()
+            for color in data:
+                if 'LAST' in color:
+                    self.last_col = color[color.find("LAST: ") + len("LAST: "): color.find(";")]
+                    self.last_col_val = self.last_col.split(" ")
+                    self.hue_min = int(self.last_col_val[0])
+                    self.hue_max = int(self.last_col_val[1])
+                    self.sat_min = int(self.last_col_val[2])
+                    self.sat_max = int(self.last_col_val[3])
+                    self.val_min = int(self.last_col_val[4])
+                    self.val_max = int(self.last_col_val[5])
 
-            if 'BLUE' in color:
-                self.blue_col = color[color.find("BLUE: ") + len("BLUE: "): color.find(";")]
-                blue_col_val = self.blue_col.split(" ")
-                self.hue_min_blue = int(blue_col_val[0])
-                self.hue_max_blue = int(blue_col_val[1])
-                self.sat_min_blue = int(blue_col_val[2])
-                self.sat_max_blue = int(blue_col_val[3])
-                self.val_min_blue = int(blue_col_val[4])
-                self.val_max_blue = int(blue_col_val[5])
+                    self.ids.hue_min_label.text = "Hue min: " + str(self.hue_min)
+                    self.ids.hue_min_slider.value = self.hue_min
+                    self.ids.hue_max_label.text = "Hue max: " + str(self.hue_max)
+                    self.ids.hue_max_slider.value = self.hue_max
 
-            if 'YELLOW' in color:
-                self.yellow_col = color[color.find("YELLOW: ") + len("YELLOW: "): color.find(";")]
-                yellow_col_val = self.yellow_col.split(" ")
-                self.hue_min_yellow = int(yellow_col_val[0])
-                self.hue_max_yellow = int(yellow_col_val[1])
-                self.sat_min_yellow = int(yellow_col_val[2])
-                self.sat_max_yellow = int(yellow_col_val[3])
-                self.val_min_yellow = int(yellow_col_val[4])
-                self.val_max_yellow = int(yellow_col_val[5])
+                    self.ids.sat_min_label.text = "Sat min: " + str(self.sat_min)
+                    self.ids.sat_min_slider.value = self.sat_min
+                    self.ids.sat_max_label.text = "Sat max: " + str(self.sat_max)
+                    self.ids.sat_max_slider.value = self.sat_max  
 
-            if 'GREEN' in color:
-                self.green_col = color[color.find("GREEN: ") + len("GREEN: "): color.find(";")]
-                green_col_val = self.green_col.split(" ")
-                self.hue_min_green = int(green_col_val[0])
-                self.hue_max_green = int(green_col_val[1])
-                self.sat_min_green = int(green_col_val[2])
-                self.sat_max_green = int(green_col_val[3])
-                self.val_min_green = int(green_col_val[4])
-                self.val_max_green = int(green_col_val[5])
-        self.lock.release()
-        print(data)
+                    self.ids.val_min_label.text = "val min: " + str(self.val_min)
+                    self.ids.val_min_slider.value = self.val_min
+                    self.ids.val_max_label.text = "val max: " + str(self.val_max)
+                    self.ids.val_max_slider.value = self.val_max 
 
-    def UpdateColors(self): # oppdatere last_col (alle verdier) + funksjon for alle knapper + 
-    
-        self.last_col = "{0} {1} {2} {3} {4} {5}".format(self.hue_min, self.hue_max, self.sat_min, self.sat_max, self.val_min, self.val_max) 
-        #str([self.hue_min, self.hue_max, self.sat_min, self.sat_max, self.val_min, self.val_max])
-        print(self.last_col)
-        data = [
-            "COLOR: h_min h_max s_min s_max v_min v_max;",
-            " ",
-            "LAST: " + self.last_col + ";",
-            "BLUE: " + self.blue_col + ";",
-            "YELLOW: " + self.yellow_col + ";",
-            "GREEN: " + self.green_col + ";",
-            "END"]
+                if 'BLUE' in color:
+                    self.blue_col = color[color.find("BLUE: ") + len("BLUE: "): color.find(";")]
+                    blue_col_val = self.blue_col.split(" ")
+                    self.hue_min_blue = int(blue_col_val[0])
+                    self.hue_max_blue = int(blue_col_val[1])
+                    self.sat_min_blue = int(blue_col_val[2])
+                    self.sat_max_blue = int(blue_col_val[3])
+                    self.val_min_blue = int(blue_col_val[4])
+                    self.val_max_blue = int(blue_col_val[5])
 
-        f = open('test_color.txt', 'w')
+                if 'YELLOW' in color:
+                    self.yellow_col = color[color.find("YELLOW: ") + len("YELLOW: "): color.find(";")]
+                    yellow_col_val = self.yellow_col.split(" ")
+                    self.hue_min_yellow = int(yellow_col_val[0])
+                    self.hue_max_yellow = int(yellow_col_val[1])
+                    self.sat_min_yellow = int(yellow_col_val[2])
+                    self.sat_max_yellow = int(yellow_col_val[3])
+                    self.val_min_yellow = int(yellow_col_val[4])
+                    self.val_max_yellow = int(yellow_col_val[5])
 
-        for l in range((len(data))):
-            f.write(data[l] + "\n")
-        f.close()
+                if 'GREEN' in color:
+                    self.green_col = color[color.find("GREEN: ") + len("GREEN: "): color.find(";")]
+                    green_col_val = self.green_col.split(" ")
+                    self.hue_min_green = int(green_col_val[0])
+                    self.hue_max_green = int(green_col_val[1])
+                    self.sat_min_green = int(green_col_val[2])
+                    self.sat_max_green = int(green_col_val[3])
+                    self.val_min_green = int(green_col_val[4])
+                    self.val_max_green = int(green_col_val[5])
+            self.lock.release()
+        except:
+            print("Failed to get colors from file")
+        #print("YOU DID IT MAN, YOU'RE THE MAN OF THE MEN! HIGH FUCKING HIGH MOTHAFOCKAAAA")
+        #print(data)
 
+    def UpdateColors(self): 
+        
+        try:
+            self.lock.acquire()
+            self.last_col = "{0} {1} {2} {3} {4} {5}".format(self.hue_min, self.hue_max, self.sat_min, self.sat_max, self.val_min, self.val_max) 
+            #str([self.hue_min, self.hue_max, self.sat_min, self.sat_max, self.val_min, self.val_max])
+            #print(self.last_col)
+            data = [
+                "COLOR: h_min h_max s_min s_max v_min v_max;",
+                " ",
+                "LAST: " + self.last_col + ";",
+                "BLUE: " + self.blue_col + ";",
+                "YELLOW: " + self.yellow_col + ";",
+                "GREEN: " + self.green_col + ";",
+                "END"]
 
-    def btn_blue_press(self): # FIKSFIKSFIKS # ID argument for knapp
-        self.hue_min = 100
-        self.hue_max = 120
-        self.sat_min = 185
-        self.sat_max = 255
-        self.val_min = 71
-        self.val_max = 255
+            f = open('test_color.txt', 'w')
+
+            for l in range((len(data))):
+                f.write(data[l] + "\n")
+            f.close()
+            self.lock.release()
+        except:
+            print("Failed to write colors to file")
+
+    def ChangeHSVColor(self, color):
+        if color == "LAST":
+            self.hue_min = int(self.last_col_val[0])
+            self.hue_max = int(self.last_col_val[1])
+            self.sat_min = int(self.last_col_val[2])
+            self.sat_max = int(self.last_col_val[3])
+            self.val_min = int(self.last_col_val[4])
+            self.val_max = int(self.last_col_val[5])
+            
+
+        elif color == "BLUE":
+            self.hue_min = self.hue_min_blue
+            self.hue_max = self.hue_max_blue
+            self.sat_min = self.sat_min_blue
+            self.sat_max = self.sat_max_blue
+            self.val_min = self.val_min_blue
+            self.val_max = self.val_max_blue
+
+        elif color == "YELLOW":
+            self.hue_min = self.hue_min_yellow
+            self.hue_max = self.hue_max_yellow
+            self.sat_min = self.sat_min_yellow
+            self.sat_max = self.sat_max_yellow
+            self.val_min = self.val_min_yellow
+            self.val_max = self.val_max_yellow
+
+        elif color == "GREEN":
+            self.hue_min = self.hue_min_green
+            self.hue_max = self.hue_max_green
+            self.sat_min = self.sat_min_green
+            self.sat_max = self.sat_max_green
+            self.val_min = self.val_min_green
+            self.val_max = self.val_max_green
+        
+        else:
+            self.hue_min = self.ids.hue_min_slider.value
+            self.hue_max = self.ids.hue_max_slider.value
+            self.sat_min = self.ids.sat_min_slider.value
+            self.sat_max = self.ids.sat_max_slider.value
+            self.val_min = self.ids.val_min_slider.value
+            self.val_max = self.ids.val_max_slider.value 
 
         self.ids.hue_min_label.text = "Hue min: " + str(self.hue_min)
         self.ids.hue_min_slider.value = self.hue_min
@@ -175,24 +267,27 @@ class CameraWindow(Screen):
         self.ids.val_min_label.text = "val min: " + str(self.val_min)
         self.ids.val_min_slider.value = self.val_min
         self.ids.val_max_label.text = "val max: " + str(self.val_max)
-        self.ids.val_max_slider.value = self.val_max  
-
-        #self.img_src = 'test.png'
-        #self.ids.image.source = 'test.png'
+        self.ids.val_max_slider.value = self.val_max 
 
 
     def CaptureThread(self):
         self.CapThread = threading.Thread(target= self.buildIMG,daemon=True)
         self.CapThread.start()
+        self.ids.btn_apply.disabled = False
+        self.ids.btn_start_color.disabled = True
 
-    def StopCaptureThread(self):
-        Clock.unschedule(self.Update)
-    
+    def StopCaptureThread(self, *args):
+        self.capture_clock.cancel()
+        self.capture.release()
+        cv2.destroyAllWindows()
+        self.ids.btn_apply.disabled = True
+        self.ids.btn_start_color.disabled = False
 
     def buildIMG(self):
         #self.img1=Image()
         self.capture = cv2.VideoCapture(0)
-        Clock.schedule_interval(self.Update, 1.0/30.0)
+        self.capture_clock = Clock.schedule_interval(self.Update, 1.0/10.0)
+        #Clock.schedule_once(self.StopCaptureThread,5)
         
 
     def Update(self, dt):
@@ -209,7 +304,6 @@ class CameraWindow(Screen):
         texture.blit_buffer(frame.tobytes(order=None), colorfmt='luminance', bufferfmt='ubyte')
         texture.flip_vertical()
         self.ids.image.texture = texture
-        
 
 
     def slide_hue_min(self, *args):
@@ -250,35 +344,85 @@ class CameraWindow(Screen):
         threading.Thread(target = self.ColorPicker).start()
 
         #ColorPicker ikke i bruk
-    def ColorPicker(self):
-        frameWidth = 640
-        frameHeight = 480
-        cap = cv2.VideoCapture(0)
-        cap.set(3, frameWidth)
-        cap.set(4, frameHeight)     
+    # def ColorPicker(self):
+    #     frameWidth = 640
+    #     frameHeight = 480
+    #     cap = cv2.VideoCapture(0)
+    #     cap.set(3, frameWidth)
+    #     cap.set(4, frameHeight)     
         
-        ret, img = cap.read()
-        if(ret):
-            imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            lower = np.array([self.hue_min, self.sat_min, self.val_min])
-            upper = np.array([self.hue_max, self.sat_max, self.val_max])
-            mask = cv2.inRange(imgHSV,lower,upper)
-            cv2.imwrite('test.png', mask)
-            cv2.imwrite('test1.png', mask)
-            cv2.destroyAllWindows()
-        else:
-            print("nope niks neeei - prøv igjen")
-
+    #     ret, img = cap.read()
+    #     if(ret):
+    #         imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    #         lower = np.array([self.hue_min, self.sat_min, self.val_min])
+    #         upper = np.array([self.hue_max, self.sat_max, self.val_max])
+    #         mask = cv2.inRange(imgHSV,lower,upper)
+    #         cv2.imwrite('test.png', mask)
+    #         cv2.imwrite('test1.png', mask)
+    #         cv2.destroyAllWindows()
+    #     else:
+    #         print("nope niks neeei - prøv igjen")
 
 
 class CalibrationWindow(Screen):
-    pass
+    font_size_pos = 50
+    font_size_buttons = 20
+    axis = "x"
+    GoTo_ok = 1,0,0
+
+    def NumPadPress(self, number): #[(70,620),(65,735)]
+        if int(self.ids.text_x_pos.text) == 0 and self.axis == "x":
+            self.ids.text_x_pos.text = str(number)
+        elif int(self.ids.text_y_pos.text) == 0 and self.axis == "y":
+            self.ids.text_y_pos.text = str(number)
+        else:   
+            if self.axis == "x":
+                if number > -1:
+                    self.ids.text_x_pos.text += str(number)
+                else:
+                    self.ids.text_x_pos.text = "0"
+
+                if int(self.ids.text_x_pos.text) < 70 or int(self.ids.text_x_pos.text) > 620:
+                    self.ids.text_x_pos.foreground_color = 1, 0, 0
+                else:
+                    self.ids.text_x_pos.foreground_color = 0, 0, 0
+            else:   
+                if number > -1:
+                    self.ids.text_y_pos.text += str(number)
+                else:
+                    self.ids.text_y_pos.text = "0"
+                
+                if int(self.ids.text_y_pos.text) < 65 or int(self.ids.text_y_pos.text) > 735:
+                    self.ids.text_y_pos.foreground_color = 1, 0, 0
+                else:
+                    self.ids.text_y_pos.foreground_color = 0, 0, 0
+
+            if int(self.ids.text_x_pos.text) < 70 or int(self.ids.text_x_pos.text) > 620 or int(self.ids.text_y_pos.text) < 65 or int(self.ids.text_y_pos.text) > 735:
+                self.ids.GoTo_btn.color = 1,0,0
+            else:
+                self.ids.GoTo_btn.color = 0,1,0
+
+    def ChooseXYvalue(self, axis):
+        if axis == 0:
+            self.axis = "x"
+        else:
+            self.axis = "y"
+
+    def GoTo_btn(self):
+        if int(self.ids.text_x_pos.text) < 70 or int(self.ids.text_x_pos.text) > 620 or int(self.ids.text_y_pos.text) < 65 or int(self.ids.text_y_pos.text) > 735:
+            PopUpGoTo()
+        else: # send postitions to arduino
+            pass
+    
+    
+        
 
 class SettingsWindow(Screen):
     pass
 
 class WindowManager(ScreenManager):
-
+    pass
+class GoToPopopWindow(FloatLayout):
     pass
 
 kv = Builder.load_file("my.kv")
@@ -302,10 +446,19 @@ def testenoe(objekt):
         #objekt.counter = int(input())
         #objekt.ids.lbl.text = "{}".format(objekt.counter)
 
+def PopUpGoTo():
+        show = GoToPopopWindow()
+        popupWindow = Popup(title="WARNING",content=show, size_hint=(None,None), size=(300,200))
+        popupWindow.open()
+
 class MyApp(App):
     def build(self):
         return kv
 
+
+    #def on_start(self):
+     #   Clock.schedule_once(self.)
+        
 
 # OLD OLD OLD OLD
 #def run():
