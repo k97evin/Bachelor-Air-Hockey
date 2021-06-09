@@ -277,11 +277,14 @@ class ColorDetectionWindow(Screen):
         self.ids.btn_start_color.disabled = True
 
     def StopCaptureThread(self, *args):
-        self.capture_clock.cancel()
-        self.capture.release()
-        cv2.destroyAllWindows()
-        self.ids.btn_apply.disabled = True
-        self.ids.btn_start_color.disabled = False
+        if self.ids.btn_apply.disabled == False: 
+            self.capture_clock.cancel()
+            self.capture.release()
+            cv2.destroyAllWindows()
+            self.ids.btn_apply.disabled = True
+            self.ids.btn_start_color.disabled = False
+        else:
+            pass
 
     def buildIMG(self):
         #self.img1=Image()
