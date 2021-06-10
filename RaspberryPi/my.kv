@@ -1,5 +1,8 @@
 WindowManager:
     id: window_manager
+    InitializeWindow:
+        id: init_window
+        manager: window_manager
     MainWindow:
         id: main_window
         manager: window_manager
@@ -19,6 +22,18 @@ WindowManager:
         id: settings_window
         manager: window_manager
 
+<InitializeWindow>:
+    name: "Init"
+
+    Button:
+        text: "trykk"
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.75}
+        id: button
+        #font_size: root.font_size_buttons
+        on_release:
+            #root.manager.transition.direction = "right"
+            app.root.current = "Main"
 
 <MainWindow>:
     name: "Main"

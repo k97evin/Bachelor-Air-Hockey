@@ -1,4 +1,5 @@
 #import kivy
+from os import truncate
 import threading
 import time
 from kivy.app import App
@@ -36,6 +37,8 @@ Config.write()
 #class Widget(Widget):
 #    score = NumericProperty(0)
 
+class InitializeWindow(Screen):
+    pass
 
 class MainWindow(Screen):
 
@@ -474,18 +477,13 @@ class MyApp(App):
         return kv
     Window.clearcolor = (0.15 ,0.15, 0.15, 1)
 
-    #def on_start(self):
-     #   Clock.schedule_once(self.)
-        
 
-# OLD OLD OLD OLD
-#def run():
- #   if __name__ == "__main__":
-  #      MyApp().run()
+    def on_start(self):
+       Clock.schedule_once(self.Switch,3)
 
-#x = threading.Thread(target=run)
-#x.start()
-# OLD OLD OLD OLD
+    def Switch(self, *args):
+        self.parent.current = "Main"
+        print(3)        
 
 if __name__ == "__main__":
     MyApp().run()
