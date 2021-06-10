@@ -1,5 +1,5 @@
 from pygame.transform import threshold
-from globfile import *
+from globfile2 import *
 
 class Puck():
     def __init__(self,space):
@@ -93,7 +93,7 @@ def velocity(puck_pos):
 import joblib
 from pathlib import Path
 path =  Path(__file__).parent
-model = joblib.load(path/'puck_path'/'model.joblib')
+model = joblib.load(path/'puck_path2'/'model.joblib')
 def rotate_vel(velocity):
     angle_inn = velocity.angle
     angle_out = model.predict([[abs(angle_inn)]])[0][0]
@@ -124,25 +124,25 @@ def path_points(puck_velocity,puck_position):
     # Variable to break out of while loop if it gets stuck
     i = 0
 
-    while puck_velocity[0] < 0 and puck_pos[0] > puck_leftPos:
+    while puck_velocity[0] < 0 and puck_pos[0] > puck_bottomPos:
         i += 1
         totalTime += t
         points.append(puck_pos)
         times.append(totalTime)
         if puck_velocity[0] < 0 and puck_velocity[1] < 0:
-            t = (puck_topPos - puck_pos[1])/puck_velocity[1]
+            t = (puck_leftPos - puck_pos[1])/puck_velocity[1]
             Px = puck_pos[0] + puck_velocity[0]*t
 
-            puck_pos  = [Px,puck_topPos]
+            puck_pos  = [Px,puck_leftPos]
             last_velocity = puck_velocity
             puck_velocity = rotate_vel(puck_velocity)
             calculate = True
 
         elif puck_velocity[0] < 0 and puck_velocity[1] > 0:
-            t = (puck_bottomPos - puck_pos[1])/puck_velocity[1]
+            t = (puck_rightPos - puck_pos[1])/puck_velocity[1]
             Px = puck_pos[0] + puck_velocity[0]*t
 
-            puck_pos = [Px,puck_bottomPos]
+            puck_pos = [Px,puck_rightPos]
             last_velocity = puck_velocity
             puck_velocity = rotate_vel(puck_velocity)
             calculate = True
@@ -154,12 +154,12 @@ def path_points(puck_velocity,puck_position):
 
 
     if calculate:
-        t = (puck_leftPos-points[-1][0])/last_velocity[0]
+        t = (puck_bottomPos-points[-1][0])/last_velocity[0]
         totalTime += t
 
         Py = points[-1][1]+last_velocity[1]*t
         
-        puck_pos = [puck_leftPos,Py]
+        puck_pos = [puck_bottomPos,Py]
         points.append(puck_pos)
         times.append(totalTime)
     
@@ -190,25 +190,25 @@ def path_points2(puck_velocity,puck_position):
     # The threshold is to not calculate puck path if the puck is moving slow in negative x-direction
     puck_vel_threshold = -5
 
-    while puck_velocity[0] < puck_vel_threshold and puck_pos[0] > puck_leftPos:
+    while puck_velocity[0] < puck_vel_threshold and puck_pos[0] > puck_bottomPos:
         i += 1
         totalTime += t
         points.append(puck_pos)
         times.append(totalTime)
         if puck_velocity[0] < 0 and puck_velocity[1] < 0:
-            t = (puck_topPos - puck_pos[1])/puck_velocity[1]
+            t = (puck_leftPos - puck_pos[1])/puck_velocity[1]
             Px = puck_pos[0] + puck_velocity[0]*t
 
-            puck_pos  = [Px,puck_topPos]
+            puck_pos  = [Px,puck_leftPos]
             last_velocity = puck_velocity
             puck_velocity = rotate_vel(puck_velocity)
             calculate = True
 
         elif puck_velocity[0] < 0 and puck_velocity[1] > 0:
-            t = (puck_bottomPos - puck_pos[1])/puck_velocity[1]
+            t = (puck_rightPos - puck_pos[1])/puck_velocity[1]
             Px = puck_pos[0] + puck_velocity[0]*t
 
-            puck_pos = [Px,puck_bottomPos]
+            puck_pos = [Px,puck_rightPos]
             last_velocity = puck_velocity
             puck_velocity = rotate_vel(puck_velocity)
             calculate = True
@@ -219,12 +219,12 @@ def path_points2(puck_velocity,puck_position):
             break
 
     if calculate:
-        t = (puck_leftPos-points[-1][0])/last_velocity[0]
+        t = (puck_bottomPos-points[-1][0])/last_velocity[0]
         totalTime += t
 
         Py = points[-1][1]+last_velocity[1]*t
         
-        puck_pos = [puck_leftPos,Py]
+        puck_pos = [puck_bottomPos,Py]
         points.append(puck_pos)
         times.append(totalTime)
     

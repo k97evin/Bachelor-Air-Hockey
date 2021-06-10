@@ -29,22 +29,23 @@ goal_size = 30*scaling
 # wall varaibles (They show the outside wall positions)
 wall_thickness = 10
 
-left = (width-table_width-2*wall_thickness)/2
-right = width-left
-top = (height-table_height-2*wall_thickness)/2
-bottom = height-top
+left = (height-table_height-2*wall_thickness)/2
+right = height-left
+bottom = (width-table_width-2*wall_thickness)/2
+top = width-bottom
 
-
-
-
-# Puck center reachable positions
-puck_topPos = top + wall_thickness + puck_radius
-puck_bottomPos = bottom - wall_thickness - puck_radius
 
 # Pusher/bot center reachable positions
 pusher_distFromWall = 10 #The closest the pusher can get to the wall
-puck_leftPos = left + wall_thickness + pusher_distFromWall + pusher_radius #kanskje ligge til: + puck_radius
-puck_rightPos = right - wall_thickness 
+
+
+# Puck center reachable positions
+puck_topPos = top - wall_thickness 
+puck_bottomPos = bottom + wall_thickness + pusher_distFromWall + pusher_radius #kanskje ligge til: + puck_radius
+
+
+puck_leftPos = left + wall_thickness + puck_radius
+puck_rightPos = right- wall_thickness - puck_radius
 
 
 
