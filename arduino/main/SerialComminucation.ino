@@ -78,16 +78,17 @@ void extractCommand(){
   char * strtokIndx;
   strtokIndx = strtok(tempChars,":"); 
   command = atoi(strtokIndx);
-
-  if(command == MOVE or command == MOVE_TO):
-
-  for(int i = 0; i < numOfArguments; i++){
-    strtokIndx = strtok(NULL, ",");
-    char *isFloat = (char*)memchr(strtokIndx,'.',strlen(command));
-    if(isFloat != NULL){
+  Serial.println("Commanden er:" + String(command));
+  if(command == MOVE or command == MOVE_TO){
+    for(int i = 0; i < numOfArguments; i++){
+      strtokIndx = strtok(NULL, ",");
       argsFloat[i] = atof(strtokIndx);
     }
-    else{
+  }
+
+  else{
+    for(int i = 0; i < numOfArguments; i++){
+      strtokIndx = strtok(NULL, ",");
       argsInt[i] = atoi(strtokIndx);
     }
   }
@@ -110,7 +111,6 @@ void executeCommand(){
     case SOLENOID:
       break;
     default:
-      command = ILLEGAL_COMMAND;
       break;
   }
 }
