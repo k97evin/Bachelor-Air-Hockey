@@ -1,8 +1,7 @@
-from globfile import *
+from globfile2 import *
 import datetime
-import bot
-import puck
-
+import bot2
+import puck2
 
 # Pygame and Pymunk setup
 pygame.init()
@@ -43,16 +42,16 @@ class Wall():
 
 
 # Declear objects
-Puck = puck.Puck(space)
-Bot = bot.Bot(space)
+Puck = puck2.Puck(space)
+Bot = bot2.Bot(space)
 
 vertical_wall_size = [wall_thickness, table_height+2*wall_thickness]
 horisontal_wall_size = [table_width+2*wall_thickness, wall_thickness]
 
-wall_top = Wall([left,top],horisontal_wall_size)
-wall_left = Wall([left,top],vertical_wall_size)
-wall_right = Wall([right-wall_thickness,top],vertical_wall_size)
-wall_bottom = Wall([left,bottom-wall_thickness],horisontal_wall_size)
+wall_left = Wall([bottom,left],horisontal_wall_size)
+wall_bottom = Wall([bottom,left],vertical_wall_size)
+wall_top = Wall([top-wall_thickness,left],vertical_wall_size)
+wall_right = Wall([bottom,right-wall_thickness],horisontal_wall_size)
 
 #Start variables
 puck_pos = []
@@ -127,7 +126,7 @@ while running:
     # Draw
     display.fill(BLACK)
 
-    puck.draw_path(points,display)
+    puck2.draw_path(points,display)
 
     Bot.draw(display)
     Puck.draw(display,puck_activated,puck_activated_pos)
@@ -140,7 +139,7 @@ while running:
     display.blit(text, textRect)
     display.blit(text2, textRect2)
 
-    rect = pygame.Rect(left,center_y-105, 10, 210)
+    rect = pygame.Rect(bottom,center_y-105, 10, 210)
     pygame.draw.rect(display, RED, rect)
 
     pygame.display.update()
@@ -164,11 +163,11 @@ while running:
 
         # How often puck path and bot command should be updated
         if i>=1:
-            puck_vel = puck.velocity(puck_pos_vel)
+            puck_vel = puck2.velocity(puck_pos_vel)
             puck_pos = Puck.body.position
             #print("puck_vel: ", puck_vel)
             #print("puck_pos: ", puck_pos)
-            points, times, last_velocity = puck.path_points2(puck_vel,puck_pos)
+            points, times, last_velocity = puck2.path_points2(puck_vel,puck_pos)
             Bot.CheckCommand(last_velocity,points,times)
             puck_pos_vel.pop(0) 
             i = 0

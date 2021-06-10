@@ -1,5 +1,5 @@
-from globfile import *
-from puck import velocity
+from globfile2 import *
+from puck2 import velocity
 
 bot_center_bounderies = [left + wall_thickness + 100, top + wall_thickness + pusher_radius, center_x, bottom - wall_thickness - pusher_radius]
 
@@ -13,7 +13,7 @@ class Bot():
         self.shape.friction = 0.5
         self.shape.collision_type = 3
         # [x_left, y_top, x_right, y_bottom]
-        self.boundries = [left + wall_thickness + 100, top + wall_thickness + pusher_radius, center_x, bottom - wall_thickness - pusher_radius]
+        self.boundries = [bottom + wall_thickness + 100, left + wall_thickness + pusher_radius, center_x, right - wall_thickness - pusher_radius]
       
         space.add(self.body,self.shape)
 
@@ -244,7 +244,7 @@ class Bot():
                     self.command = "targeted_attack"
 
                     attack_point = directed_hit_stillPuck(bot_pos,puck_pos,[1,-1])
-                    attack_point = hit_stillPuck_to_target_pos(bot_pos,puck_pos,[puck_rightPos,center_y])
+                    attack_point = hit_stillPuck_to_target_pos(bot_pos,puck_pos,[puck_topPos,center_y])
                     bot_points = [self.body.position, attack_point]
                     bot_speed = self.maxSpeed
                     self.path = [bot_points,[bot_speed],0]
