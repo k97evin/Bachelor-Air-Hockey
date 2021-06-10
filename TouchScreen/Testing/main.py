@@ -38,14 +38,13 @@ Config.write()
 
 
 class MainWindow(Screen):
-    #colorW = ObjectProperty()
+
+    font_size_buttons = 20
+
     def QuitApp(self):
         App.get_running_app().stop()
         Window.close()
-    
-    # def GetColorsToColorWindow(self):
-    #     self.manager.current = "ColorDetectionWindow"
-    #     self.GetColors()
+   
 
 class PlayGameWindow(Screen):
 
@@ -98,8 +97,9 @@ class LiveCalculationWindow(Screen):
 
 class ColorDetectionWindow(Screen):
     lock = threading.Lock()
+    font_size = 20
+    font_size_buttons = 20
     
-    font_size = 15
     hue_min = 50
     hue_max = 170
     sat_min = 150
@@ -342,45 +342,32 @@ class ColorDetectionWindow(Screen):
         self.ids.val_max_label.text = "Val max: " + str(self.val_max)
         #self.ColorPicker()
 
-    # Unused ATM
-    def thread(self):
-        threading.Thread(target = self.ColorPicker).start()
+    def Help_btn(self):
+        PopupHelp()
+    
 
-        #ColorPicker ikke i bruk
-    # def ColorPicker(self):
-    #     frameWidth = 640
-    #     frameHeight = 480
-    #     cap = cv2.VideoCapture(0)
-    #     cap.set(3, frameWidth)
-    #     cap.set(4, frameHeight)     
-        
-    #     ret, img = cap.read()
-    #     if(ret):
-    #         imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    #         lower = np.array([self.hue_min, self.sat_min, self.val_min])
-    #         upper = np.array([self.hue_max, self.sat_max, self.val_max])
-    #         mask = cv2.inRange(imgHSV,lower,upper)
-    #         cv2.imwrite('test.png', mask)
-    #         cv2.imwrite('test1.png', mask)
-    #         cv2.destroyAllWindows()
-    #     else:
-    #         print("nope niks neeei - prøv igjen")
 
 
 class CalibrationWindow(Screen):
-    font_size_pos = 50
-    font_size_buttons = 20
+    font_size_pos = 55
+    font_size_buttons = 25
     axis = "x"
-    GoTo_ok = 1,0,0
+    #GoTo_ok = 1,0,0
 
     def NumPadPress(self, number): #[(70,620),(65,735)]
         if int(self.ids.text_x_pos.text) == 0 and self.axis == "x":
-            self.ids.text_x_pos.text = str(number)
+            if number == -1:
+                self.ids.text_x_pos.text="0"
+            else:    
+                self.ids.text_x_pos.text = str(number)
         elif int(self.ids.text_y_pos.text) == 0 and self.axis == "y":
-            self.ids.text_y_pos.text = str(number)
+            if number == -1:
+                self.ids.text_y_pos.text = "0"
+            else:
+                self.ids.text_y_pos.text = str(number)
         else:   
             if self.axis == "x":
-                if number > -1:
+                if number >= 0:
                     self.ids.text_x_pos.text += str(number)
                 else:
                     self.ids.text_x_pos.text = "0"
@@ -390,7 +377,7 @@ class CalibrationWindow(Screen):
                 else:
                     self.ids.text_x_pos.foreground_color = 0, 0, 0
             else:   
-                if number > -1:
+                if number >= 0:
                     self.ids.text_y_pos.text += str(number)
                 else:
                     self.ids.text_y_pos.text = "0"
@@ -401,9 +388,9 @@ class CalibrationWindow(Screen):
                     self.ids.text_y_pos.foreground_color = 0, 0, 0
 
             if int(self.ids.text_x_pos.text) < 70 or int(self.ids.text_x_pos.text) > 620 or int(self.ids.text_y_pos.text) < 65 or int(self.ids.text_y_pos.text) > 735:
-                self.ids.GoTo_btn.color = 1,0,0
+                self.ids.MoveTo_btn.color = 1,0,0
             else:
-                self.ids.GoTo_btn.color = 0,1,0
+                self.ids.MoveTo_btn.color = 0,1,0
 
     def ChooseXYvalue(self, axis):
         if axis == 0:
@@ -411,13 +398,34 @@ class CalibrationWindow(Screen):
         else:
             self.axis = "y"
 
-    def GoTo_btn(self):
+    def MoveTo_btn(self):
         if int(self.ids.text_x_pos.text) < 70 or int(self.ids.text_x_pos.text) > 620 or int(self.ids.text_y_pos.text) < 65 or int(self.ids.text_y_pos.text) > 735:
-            PopUpGoTo()
+            PopupMoveTo()
         else: # send postitions to arduino
             pass
     
-    
+    def StopClock_pos(self, *args):
+        self.clock_interval.cancel()
+
+    i = 0
+    def StartClock_pos(self):
+        self.clock_interval = Clock.schedule_interval(self.Update_pos, 1.0/30)
+
+    def Update_pos(self, *args):
+        self.i += 1
+        if int(self.ids.pos_x.text) < 10:
+            self.ids.pos_x.text = "  " + str(self.i)
+        elif int(self.ids.pos_x.text) < 100:
+            self.ids.pos_x.text = " " + str(self.i)   
+        else:  
+            self.ids.pos_x.text = str(self.i)    
+
+        if int(self.ids.pos_y.text) < 10:
+            self.ids.pos_y.text = "  " + str(self.i)
+        elif int(self.ids.pos_y.text) < 100:
+            self.ids.pos_y.text = " " + str(self.i)   
+        else:  
+            self.ids.pos_y.text = str(self.i)
         
 
 class SettingsWindow(Screen):
@@ -425,7 +433,9 @@ class SettingsWindow(Screen):
 
 class WindowManager(ScreenManager):
     pass
-class GoToPopopWindow(FloatLayout):
+class MoveToPopupWindow(FloatLayout):
+    pass
+class HelpPopupWindow(FloatLayout):
     pass
 
 kv = Builder.load_file("my.kv")
@@ -449,15 +459,20 @@ def testenoe(objekt):
         #objekt.counter = int(input())
         #objekt.ids.lbl.text = "{}".format(objekt.counter)
 
-def PopUpGoTo():
-        show = GoToPopopWindow()
-        popupWindow = Popup(title="WARNING",content=show, size_hint=(None,None), size=(300,200))
-        popupWindow.open()
+def PopupMoveTo():
+    show = MoveToPopupWindow()
+    popupWindow = Popup(title="WARNING",content=show, size_hint=(None,None), size=(400,250))
+    popupWindow.open()
+
+def PopupHelp():
+    show =  HelpPopupWindow()
+    popupWindow = Popup(title="Help",content=show, size_hint=(None,None), size=(500,250))
+    popupWindow.open()
 
 class MyApp(App):
     def build(self):
         return kv
-
+    Window.clearcolor = (0.15 ,0.15, 0.15, 1)
 
     #def on_start(self):
      #   Clock.schedule_once(self.)
