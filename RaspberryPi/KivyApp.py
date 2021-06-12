@@ -49,6 +49,8 @@ class InitializeWindow(Screen):
     interval = 0
     interval_search = ". "
     interval_zero = ". "
+    interval_move = 0
+    moved = 0
     color_red = 1,0,0
     color_green = 0,1,0
     color_white = 1,1,1
@@ -89,6 +91,7 @@ class InitializeWindow(Screen):
             self.ids.roi.color = self.color_white
             if len(self.interval_search) > 6: self.interval_search = ". "
         else: 
+            self.interval_move += 1
             i = 0
             self.ids.roi_id.text = ""
             self.ids.roi.text = "Not Found"
@@ -97,6 +100,12 @@ class InitializeWindow(Screen):
                 if corner == False:
                     self.ids.roi_id.text += str(i) + " "
                 i += 1
+            if self.interval_move == 6 and self.moved < 3:
+                
+                self.moved += 1
+                serialCom.writeData(Commands.MOVE,50,0,100)
+                self.interval_move = 0
+
 
         if aruco_robot == True: 
             self.ids.robot.text = "Found"
