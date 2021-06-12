@@ -47,10 +47,14 @@ float radius = 25.205;
 
 int time = 0;
 
+
 // Stepper declearation 
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *stepperL = NULL;
 FastAccelStepper *stepperR = NULL;
+
+int botpathNum = -1;
+bool followBotpath_bool = false;
 
 void setup() {
   // --- Pins and Serial --- //
@@ -91,4 +95,7 @@ void setup() {
 
 void loop(){
   serialCom();
+  if(followBotpath_bool == true && botpathNum != -1){
+    followBotpath();
+  }
 }

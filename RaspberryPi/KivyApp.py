@@ -1,12 +1,15 @@
 #import kivy
 from os import truncate
+from comProtocol import SerialCom, Commands
+from videoStream import VideoStream
+from globfile import *
 import threading
-import time
+#import time
 from kivy.app import App
 
 import cv2
 from kivy.core import window
-import numpy as np
+#import numpy as np
 
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty
@@ -20,6 +23,7 @@ from kivy.graphics.texture import Texture
 from kivy.clock import Clock
 from kivy.uix.image import Image
 from kivy.uix.popup import Popup
+from kivy.uix.progressbar import ProgressBar
 
 from kivy.properties import NumericProperty
 
@@ -29,16 +33,66 @@ Config.set('graphics', 'width', '800')
 Config.set('graphics', 'height', '480')
 Config.write()
 
+# Serial object to communicate
+try:
+    serialCom = SerialCom("COM6", 115200)
+    serialCom.connect()
+except:
+    print("Could not open port")
 
-#class Widgets(Widget):
-#    def btn(self):
-#       show_popup()
-
-#class Widget(Widget):
-#    score = NumericProperty(0)
+camera = VideoStream()
+camera.start()
 
 class InitializeWindow(Screen):
-    pass
+    font_size = 25
+    interval = 0
+    interval_search = ". "
+    color_red = 1,0,0
+    color_green = 0,1,0
+    color_white = 1,1,1
+    
+    
+    def switch(self, *args):
+        self.parent.current = "Main"
+
+    def on_enter(self, *args):
+        self.StartClock()
+
+    def on_leave(self, *args):
+        self.StopClock()
+    
+    def StartClock(self):
+        self.clock_interval = Clock.schedule_interval(self.Update, 1.0/2)
+    def StopClock(self, *args):
+        self.clock_interval.cancel()
+
+    def Update(self, *args):
+        self.interval += 0.05
+        self.ids.progressbar.value += 0.1
+
+        aruco_corner, roi = camera.corner_detection()
+        aruco_robot = camera.robot_detection()
+
+        if roi == True:
+            self.ids.roi.text = "Found"
+            self.ids.roi.color = self.color_green
+        elif self.interval < 1 and roi == False:
+            self.ids.roi.text = "Searching " + self.interval_search
+            self.interval_search += ". "
+            self.ids.roi.color = self.color_white
+            if len(self.interval_search) > 6: self.interval_search = ". "
+        else: 
+            self.ids.roi.text = "Not Found"
+            self.ids.roi.color = self.color_red
+
+        if aruco_robot == True: 
+            self.ids.robot.text = "Found"
+            self.ids.robot.color = self.color_green
+        else:
+            self.ids.robot.text = "Not Found"
+            self.ids.robot.color = self.color_red
+
+    
 
 class MainWindow(Screen):
 
@@ -51,7 +105,9 @@ class MainWindow(Screen):
 
 class PlayGameWindow(Screen):
 
-    font_size_score = 125
+    font_size_score = 175
+    font_size = 20
+    font_size_buttons = 25
 
     def ScorePlayer(self, increment):
         self.score_player = int(self.ids.score_player.text)
@@ -77,6 +133,10 @@ class PlayGameWindow(Screen):
             self.score_robot = 9
         self.ids.score_robot.text = "{}".format(self.score_robot)
     
+    def RestartGame(self):
+        self.ids.score_player.text = "0"
+        self.ids.score_robot.text = "0"
+    
 
 class LiveCalculationWindow(Screen):
     counter = NumericProperty(0)
@@ -101,7 +161,11 @@ class LiveCalculationWindow(Screen):
 class ColorDetectionWindow(Screen):
     lock = threading.Lock()
     font_size = 20
-    font_size_buttons = 20
+    font_size_buttons = 25
+    color_blue = 0,0,1
+    color_yellow = 1,1,0
+    color_green = 0,1,0
+
     
     hue_min = 50
     hue_max = 170
@@ -109,7 +173,68 @@ class ColorDetectionWindow(Screen):
     sat_max = 255
     val_min = 0
     val_max = 255
-    img_src = 'test.png'
+
+    #def switch(self, *args):
+     #   self.parent.current = "Main"
+
+    def on_enter(self, *args):
+        # called when this Screen is displayed
+        self.GetColors()
+        self.StartClock()
+    
+    def on_leave(self, *args):
+        self.StopClock()
+
+    def StartClock(self):
+        self.clock_interval = Clock.schedule_interval(self.Update, 1.0/10)
+    def StopClock(self, *args):
+        self.clock_interval.cancel()
+
+    def Update(self, *args):
+        #frame, _ = camera.undistort_camera()
+        frame = camera.frame
+        imgHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        lower = np.array([self.hue_min, self.sat_min, self.val_min])
+        upper = np.array([self.hue_max, self.sat_max, self.val_max])
+        frame = cv2.inRange(imgHSV, lower, upper)
+
+        texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='luminance') 
+        #if working on RASPBERRY PI, use colorfmt='rgba' here instead, but stick with "bgr" in blit_buffer. 
+        texture.blit_buffer(frame.tobytes(order=None), colorfmt='luminance', bufferfmt='ubyte')
+        texture.flip_vertical()
+        self.ids.image.texture = texture
+
+    # def CaptureThread(self): # stoppe thread, starte bare klokke, utføre derfra
+    #     self.CapThread = threading.Thread(target= self.buildIMG,daemon=True)
+    #     self.CapThread.start()
+
+    # def StopCaptureThread(self, *args):
+        
+    #     self.capture_clock.cancel()
+    #     #self.capture.release()
+    #     #cv2.destroyAllWindows()
+
+    # def buildIMG(self):
+    #     #self.capture = cv2.VideoCapture(0)
+    #     self.capture_clock = Clock.schedule_interval(self.Update, 1.0/10.0)
+    #     #Clock.schedule_once(self.StopCaptureThread,5)
+        
+
+    # def Update(self, dt):
+    #     #ret, frame = self.capture.read()
+    #     frame, _ = camera.undistort_camera()
+    #     imgHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    #     self.lock.acquire()
+    #     lower = np.array([self.hue_min, self.sat_min, self.val_min])
+    #     upper = np.array([self.hue_max, self.sat_max, self.val_max])
+    #     self.lock.release()
+    #     frame = cv2.inRange(imgHSV, lower, upper)
+
+    #     texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='luminance') 
+    #     #if working on RASPBERRY PI, use colorfmt='rgba' here instead, but stick with "bgr" in blit_buffer. 
+    #     texture.blit_buffer(frame.tobytes(order=None), colorfmt='luminance', bufferfmt='ubyte')
+    #     texture.flip_vertical()
+    #     self.ids.image.texture = texture
     
 
     def GetColors(self):
@@ -273,45 +398,6 @@ class ColorDetectionWindow(Screen):
         self.ids.val_max_slider.value = self.val_max 
 
 
-    def CaptureThread(self):
-        self.CapThread = threading.Thread(target= self.buildIMG,daemon=True)
-        self.CapThread.start()
-        self.ids.btn_apply.disabled = False
-        self.ids.btn_start_color.disabled = True
-
-    def StopCaptureThread(self, *args):
-        if self.ids.btn_apply.disabled == False: 
-            self.capture_clock.cancel()
-            self.capture.release()
-            cv2.destroyAllWindows()
-            self.ids.btn_apply.disabled = True
-            self.ids.btn_start_color.disabled = False
-        else:
-            pass
-
-    def buildIMG(self):
-        #self.img1=Image()
-        self.capture = cv2.VideoCapture(0)
-        self.capture_clock = Clock.schedule_interval(self.Update, 1.0/10.0)
-        #Clock.schedule_once(self.StopCaptureThread,5)
-        
-
-    def Update(self, dt):
-        ret, frame = self.capture.read()
-        imgHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        self.lock.acquire()
-        lower = np.array([self.hue_min, self.sat_min, self.val_min])
-        upper = np.array([self.hue_max, self.sat_max, self.val_max])
-        self.lock.release()
-        frame = cv2.inRange(imgHSV, lower, upper)
-
-        texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='luminance') 
-        #if working on RASPBERRY PI, use colorfmt='rgba' here instead, but stick with "bgr" in blit_buffer. 
-        texture.blit_buffer(frame.tobytes(order=None), colorfmt='luminance', bufferfmt='ubyte')
-        texture.flip_vertical()
-        self.ids.image.texture = texture
-
-
     def slide_hue_min(self, *args):
         #print(int(args[1]))
         self.hue_min = int(args[1])
@@ -355,80 +441,145 @@ class CalibrationWindow(Screen):
     font_size_pos = 55
     font_size_buttons = 25
     axis = "x"
-    #GoTo_ok = 1,0,0
+    color_red = 1,0,0
+    color_green = 0,1,0
+    color_black = 0,0,0
+    color_white = 1,1,1
+    DoneHoming = False
+    
+    i = 0
+    def on_enter(self, *args):
+        # called when this Screen is displayed
+        self.StartClock()
 
-    def NumPadPress(self, number): #[(70,620),(65,735)]
-        if int(self.ids.text_x_pos.text) == 0 and self.axis == "x":
+    def on_leave(self, *args):
+        self.StopClock()
+    
+
+    def StartClock(self):
+        self.clock_interval = Clock.schedule_interval(self.Update, 1.0/2)
+    def StopClock(self, *args):
+        self.clock_interval.cancel()
+
+    def Update(self, *args):
+        # self.i += 1
+        # if int(self.ids.pos_x.text) < 10:
+        #     self.ids.pos_x.text = "  " + str(self.i)
+        # elif int(self.ids.pos_x.text) < 100:
+        #     self.ids.pos_x.text = " " + str(self.i)   
+        # else:  
+        #     self.ids.pos_x.text = str(self.i)    
+
+        # if int(self.ids.pos_y.text) < 10:
+        #     self.ids.pos_y.text = "  " + str(self.i)
+        # elif int(self.ids.pos_y.text) < 100:
+        #     self.ids.pos_y.text = " " + str(self.i)   
+        # else:  
+        #     self.ids.pos_y.text = str(self.i)
+
+        # Get info from arucomarkers
+        arucomarkers = [1,1,1,1,1]
+        aruco = arucomarkers
+
+        if all(aruco[:-1]):
+            self.ids.roi.text = "Found"
+            self.ids.roi.color = self.color_green 
+        else:
+            self.ids.roi.text = "Not Found"
+            self.ids.roi.color = self.color_green
+        if aruco[-1]:
+            self.ids.robot_aruco.text = "Found"
+            self.ids.robot_aruco.color = self.color_green
+        else:
+            self.ids.robot_aruco.text = "Not Found"
+            self.ids.robot_aruco.color = self.color_red  
+
+        if serialCom.getLastReceivedMessage() == "Done: zero": 
+            self.ids.MoveTo_btn.disabled = False
+            self.DoneHoming = True
+
+        if self.DoneHoming: 
+            bot_pos = serialCom.writeData(Commands.GET_BOTPOS)
+            self.ids.pos_x.text = str(int(bot_pos[0]) + 1)
+            self.ids.pos_y.text = str(int(bot_pos[1]) + 1)
+
+        
+
+    
+    def NumPadPress(self, number): #[(70,620),(65,635)]
+        x = int(self.ids.text_x_pos.text)
+        y = int(self.ids.text_y_pos.text)
+
+        if x == 0 and self.axis == "x":
             if number == -1:
                 self.ids.text_x_pos.text="0"
-            else:    
-                self.ids.text_x_pos.text = str(number)
-        elif int(self.ids.text_y_pos.text) == 0 and self.axis == "y":
+            else: self.ids.text_x_pos.text = str(number)
+
+        elif y == 0 and self.axis == "y":
             if number == -1:
                 self.ids.text_y_pos.text = "0"
-            else:
-                self.ids.text_y_pos.text = str(number)
+            else: self.ids.text_y_pos.text = str(number)
+
         else:   
             if self.axis == "x":
                 if number >= 0:
                     self.ids.text_x_pos.text += str(number)
-                else:
-                    self.ids.text_x_pos.text = "0"
+                else: self.ids.text_x_pos.text = "0"
 
-                if int(self.ids.text_x_pos.text) < 70 or int(self.ids.text_x_pos.text) > 620:
-                    self.ids.text_x_pos.foreground_color = 1, 0, 0
-                else:
-                    self.ids.text_x_pos.foreground_color = 0, 0, 0
+                x = int(self.ids.text_x_pos.text)
+
+                if len(self.ids.text_x_pos.text) > 5:
+                    self.ids.text_x_pos.text = str(number)
+                
+                if x < 70 or x > 620:
+                    self.ids.text_x_pos.foreground_color = self.color_red
+                else: self.ids.text_x_pos.foreground_color = self.color_green
+
             else:   
                 if number >= 0:
                     self.ids.text_y_pos.text += str(number)
-                else:
-                    self.ids.text_y_pos.text = "0"
-                
-                if int(self.ids.text_y_pos.text) < 65 or int(self.ids.text_y_pos.text) > 735:
-                    self.ids.text_y_pos.foreground_color = 1, 0, 0
-                else:
-                    self.ids.text_y_pos.foreground_color = 0, 0, 0
+                else: self.ids.text_y_pos.text = "0"
 
-            if int(self.ids.text_x_pos.text) < 70 or int(self.ids.text_x_pos.text) > 620 or int(self.ids.text_y_pos.text) < 65 or int(self.ids.text_y_pos.text) > 735:
-                self.ids.MoveTo_btn.color = 1,0,0
-            else:
-                self.ids.MoveTo_btn.color = 0,1,0
+                y = int(self.ids.text_y_pos.text)
+
+                if len(self.ids.text_y_pos.text) > 5:
+                    self.ids.text_y_pos.text = str(number)
+
+                if y < 65 or y > 635:
+                    self.ids.text_y_pos.foreground_color = self.color_red
+                else: self.ids.text_y_pos.foreground_color = self.color_green
+                    
+            if x < 70 or x > 620 or y < 65 or y > 635:
+                self.ids.MoveTo_btn.background_color = self.color_red
+            else: self.ids.MoveTo_btn.background_color = self.color_green
+                
 
     def ChooseXYvalue(self, axis):
         if axis == 0:
             self.axis = "x"
+            self.ids.text_x_pos.text = "0"
+            self.ids.text_x_pos.foreground_color = self.color_red
         else:
             self.axis = "y"
+            self.ids.text_y_pos.text = "0"
+            self.ids.text_y_pos.foreground_color = self.color_red
 
     def MoveTo_btn(self):
-        if int(self.ids.text_x_pos.text) < 70 or int(self.ids.text_x_pos.text) > 620 or int(self.ids.text_y_pos.text) < 65 or int(self.ids.text_y_pos.text) > 735:
+        x = int(self.ids.text_x_pos.text)
+        y = int(self.ids.text_y_pos.text)
+        speed = 150 # id speed
+
+        if x < 70 or x > 620 or y < 65 or y > 635:
             PopupMoveTo()
-        else: # send postitions to arduino
-            pass
+        else:
+            serialCom.writeData(Commands.MOVE_TO, int(self.ids.text_x_pos.text), int(self.ids.text_y_pos.text), speed) 
     
-    def StopClock_pos(self, *args):
-        self.clock_interval.cancel()
-
-    i = 0
-    def StartClock_pos(self):
-        self.clock_interval = Clock.schedule_interval(self.Update_pos, 1.0/30)
-
-    def Update_pos(self, *args):
-        self.i += 1
-        if int(self.ids.pos_x.text) < 10:
-            self.ids.pos_x.text = "  " + str(self.i)
-        elif int(self.ids.pos_x.text) < 100:
-            self.ids.pos_x.text = " " + str(self.i)   
-        else:  
-            self.ids.pos_x.text = str(self.i)    
-
-        if int(self.ids.pos_y.text) < 10:
-            self.ids.pos_y.text = "  " + str(self.i)
-        elif int(self.ids.pos_y.text) < 100:
-            self.ids.pos_y.text = " " + str(self.i)   
-        else:  
-            self.ids.pos_y.text = str(self.i)
+    def Homing(self):
+        serialCom.writeData(Commands.ZERO)
+        
+            
+            
+            
         
 
 class SettingsWindow(Screen):
@@ -462,6 +613,8 @@ def testenoe(objekt):
         #objekt.counter = int(input())
         #objekt.ids.lbl.text = "{}".format(objekt.counter)
 
+
+
 def PopupMoveTo():
     show = MoveToPopupWindow()
     popupWindow = Popup(title="WARNING",content=show, size_hint=(None,None), size=(400,250))
@@ -478,12 +631,12 @@ class MyApp(App):
     Window.clearcolor = (0.15 ,0.15, 0.15, 1)
 
 
-    def on_start(self):
-       Clock.schedule_once(self.Switch,3)
+    # def on_start(self):
+    #    Clock.schedule_once(self.Switch,3)
 
-    def Switch(self, *args):
-        self.parent.current = "Main"
-        print(3)        
+    # def Switch(self, *args):
+    #     self.parent.current = "Main"
+    #     print(3)        
 
 if __name__ == "__main__":
     MyApp().run()

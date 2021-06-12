@@ -6,6 +6,7 @@ from enum import Enum
 import re
 
 class Commands(Enum):
+    NONE = 0
     CONNECTED = 1
     RECIEVED = 2
     ILLEGAL_COMMAND = 3
@@ -20,13 +21,9 @@ class Commands(Enum):
     GET_BOTPOS = 12
     GET_STEPPERPOS = 13
     GET_LIMIT_SWITCHES = 14
-    
-#class Parameter(Enum):
-#    LIMITSWITCHES = 1
-#    BOTPOS = 2
-#    STEPPERPOS = 3
 
-class Com():
+
+class SerialCom():
     def __init__(self,comport, baudrate):
         self.comport = comport
         self.baudrate = baudrate
@@ -37,6 +34,10 @@ class Com():
         self.sendtCommandsLock = Lock()
         self.sema = threading.Semaphore(7)
         self.sendtCommands = []
+        self.lastArgsLock = Lock()
+        self.lastRecievedArgs = []
+        self.lastMessageLock = Lock()
+        self.lastReceivedMessage = ""
         #Thread(target=self.writingThread,daemon=True).start()
 
 
@@ -44,8 +45,7 @@ class Com():
         self.ser = serial.Serial(self.comport,self.baudrate,timeout=1)
         time.sleep(2)
         Thread(target=self.readingThread,daemon=True).start()
-        self.ser.flush()
-        time.sleep(0.5)
+        self.emptyCom()
         self.writeData(Commands.CONNECTED)
         arduinoConnected = False
 
@@ -70,11 +70,12 @@ class Com():
         receivedResponse = False
         while not receivedResponse:
             self.sendtCommandsLock.acquire()
+            #print("se:", self.sendtCommands)
             if not command.value in self.sendtCommands:
                 receivedResponse = True
             self.sendtCommandsLock.release()
             
-            time.sleep(0.1)
+            time.sleep(0.01)
 
         return receivedResponse
         
@@ -92,26 +93,57 @@ class Com():
             self.serLock.acquire()
             if self.ser.inWaiting() > 0 and runThreadBuff:
                 line = self.ser.readline().decode('utf-8').rstrip()
-                print("incommingLine:" + line)
+                #print("incommingLine:" + line)
                 newMessage = True
             self.serLock.release()
 
             if newMessage:
-                command,parametres = self.extractData(line)
-                if command != "":
+                self.lastMessageLock.acquire()
+                self.lastReceivedMessage = ""
+                command,arguments = self.extractData(line)
+                if command != Commands.NONE:
+                    if self.checkIfReturnValue(command):
+                        self.lastArgsLock.acquire()
+                        self.lastRecievedArgs = arguments
+                        self.lastArgsLock.release()
                     self.sendtCommandsLock.acquire()
+
                     try:
-                        self.sendtCommands.remove(int(command))
+                        self.sendtCommands.remove(command.value)
                     except:
-                        print("received wrong command:" + command)
+                        print("received wrong command:", command)
                         print(self.sendtCommands)
+
                     self.sendtCommandsLock.release()
-                    print("Sema value: ",self.sema._value)
+                    #print("Sema value: ",self.sema._value)
                     self.sema.release()
+                else:
+                    self.lastReceivedMessage = line
+
                 newMessage = False
+                self.lastMessageLock.release()
+            time.sleep(0.1)
 
+    
+    def getLastReceivedMessage(self):
+        self.lastMessageLock.acquire()
+        message = self.lastReceivedMessage
+        self.lastMessageLock.release()
+        return message
 
+    def writeBotpath(self,botpathPoints,botpathSpeeds):
+        data = f"<{Commands.BOTPATH}:"
+        pointArgument = ""
+        speedArgument = ""
+        for i in range(len(botpathPoints)):
+            pointArgument += f"{botpathPoints[i][0]},{botpathPoints[i][1]} "
+            speedArgument += f"{botpathSpeeds[i]},"
 
+        data += pointArgument[:-1] + "|" + speedArgument[:-1] + ">"
+
+        return data
+        
+     
 
     def writeData(self,command,*args):
         data = f"<{command.value}:"
@@ -122,20 +154,55 @@ class Com():
         for arg in args:
             data += f"{arg},"
         data = data[:-1] + ">"
-        print("Sema value: ",self.sema._value)
-        print("sendingData: ", data)
+
         self.sema.acquire()
         self.ser.write((data.encode('utf-8')))
+        args = []
+        if self.checkIfReturnValue(command):
+            self.waitForResponse(command)
+            self.lastArgsLock.acquire()
+            args = self.lastRecievedArgs 
+            self.lastArgsLock.release()
+
+        return args
+
 
 
     def extractData(self,line):
-        command = ""
-        parameters = ""
-        data = re.search("<([0-9]+):?([a-zA-Z0-9\.\,]*)>",line)
+        command = Commands.NONE
+        arguments = []
+        data = re.search("<([0-9]+):?(-?[a-zA-Z0-9\.\, -]*)>",line)
 
         if data != None:
-            command = data.group(1)
-            parameters = data.group(2)         
-        else: print("line:"  + line)
+            command = Commands(int(data.group(1)))
+            arguments_string = data.group(2).split(',')  
+            if self.checkIfReturnValue(command):
+                if command == Commands.GET_LIMIT_SWITCHES:
+                    arguments = [int(x) for x in arguments_string]
+                else:
+                    arguments = [float(x) for x in arguments_string]
 
-        return command,parameters
+       
+        else: print("Incomming line:"  + line)
+
+        return command,arguments
+
+
+    def checkIfReturnValue(self,command):
+        if command == Commands.GET_BOTPOS or command == Commands.GET_STEPPERPOS or command == Commands.GET_LIMIT_SWITCHES:
+            return True
+        else: 
+            return False
+
+    def emptyCom(self):
+        self.serLock.acquire()
+        self.lastArgsLock.acquire()
+        self.ser.flushInput()
+        self.ser.flushOutput()
+        self.lastRecievedArgs = []
+        self.sema = threading.Semaphore(7)
+        time.sleep(1)
+        self.lastArgsLock.release()
+        self.serLock.release()
+
+
