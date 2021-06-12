@@ -1,7 +1,7 @@
 
 
 
-// --- Convertion formulas --- //
+// --- CONVERTION FORMULAS --- //
 float x_pos(int thetaL, int thetaR, bool steps) {
   float svar = 0;
   if (steps == true) {
@@ -50,6 +50,7 @@ int thetaR(float x, float y, bool steps){
   }
   return (int)svar;
 }
+
 
 void goto_zero(){
   //deactivating stepper enable
@@ -120,15 +121,42 @@ void goto_zero(){
   //Activating stepper enable
   digitalWrite(enablePin,LOW);
 
-  Serial.println("Done zeroing");
+  Serial.println("Done: zero");
 }
 
-void MoveToPosition2(float posX, float posY, float stepperSpeed){
 
-  if(posX<100.0) posX = 100;
-  else if(posX > 600) posX = 600;
-  if(posY<100) posY = 100;
-  else if (posY > 600) posY = 600.0;
+void goto_center(float stepperSpeed){
+  int x = 100;
+  int middle_y = 350;
+  MoveToPosition(x,middle_y,stepperSpeed);
+}
+
+
+void followBotpath(){
+  MoveToPosition(botpathPoints[botpathNum].posX,botpathPoints[botpathNum].posY,botpathSpeeds[botpathNum]);
+  //Serial.println("Pos X:" + String(botpathPoints[botpathNum].posX));
+  delay(1);
+  //Serial.println("NUM:" + String(botpathNum));
+  if(stepperL->targetPos() == stepperL->getCurrentPosition() && stepperR->targetPos() == stepperR->getCurrentPosition()){
+    if(botpathNum == numOfBotPoints-1){
+      botpathNum = -1;
+      followBotpath_bool = false;
+      Serial.println("Done: botpath");
+    }
+    else{
+      botpathNum ++;
+      //Serial.println("ikke ferdig path");
+      delay(1);
+    }
+  }
+}
+
+
+void MoveToPosition(float posX, float posY, float stepperSpeed){
+  if(posX<70.0) posX = 70;
+  else if(posX > 620) posX = 620;
+  if(posY<65) posY = 65;
+  else if (posY > 635) posY = 635;
   
   int stepperL_pos = stepperL->getCurrentPosition();
   int stepperR_pos = stepperR->getCurrentPosition();
@@ -157,6 +185,7 @@ void MoveToPosition2(float posX, float posY, float stepperSpeed){
   stepperL->setSpeedInHz(stepperL_vel); 
   stepperR->setSpeedInHz(stepperR_vel);
 
+  //Serial.println("Moving to: X:"+ String(posX) + " Y:" + String(posY));
   stepperL->moveTo(thetaL(posX,posY,true));
   stepperR->moveTo(thetaR(posX,posY,true));
 
@@ -187,6 +216,30 @@ void MovePosition(float x_dist, float y_dist, float stepperSpeed){
 
   stepperL->move(thetaL(x_dist,y_dist,true));
   stepperR->move(thetaR(x_dist,y_dist,true));
+}
+
+void getBotPos(char * charArray){
+  int thetaL = stepperL->getCurrentPosition();
+  int thetaR = stepperR->getCurrentPosition();
+  //int thetaL = -200;
+  //int thetaR = -300;
+
+  float x = x_pos(thetaL,thetaR,true);
+  float y = y_pos(thetaL,thetaR,true);
+
+  char xBuff[8];
+  char yBuff[8];
+  dtostrf(x,3,2, xBuff);
+  dtostrf(y,3,2, yBuff);
+  sprintf(charArray,"%s,%s",xBuff,yBuff);
+}
+
+void getStepperPos(char * charArray){
+  int thetaL = stepperL->getCurrentPosition();
+  int thetaR = stepperR->getCurrentPosition();
+  //int thetaL = -200;
+  //int thetaR = -300;
+  sprintf(charArray,"%d,%d",thetaL,thetaR);
 }
 
 
