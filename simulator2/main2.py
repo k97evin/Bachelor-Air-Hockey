@@ -120,7 +120,7 @@ while running:
         Bot.reset()
 
     if keys[pygame.K_y]:
-        Puck.body.position = [400,center_y+200]
+        Puck.body.position = [400,center_y+180]
         Puck.body.velocity = [0,0]
 
     # Draw

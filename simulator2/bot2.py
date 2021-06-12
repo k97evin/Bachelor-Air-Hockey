@@ -243,11 +243,12 @@ class Bot():
                 if(puck_pos[0] < center_x):
                     self.command = "targeted_attack"
 
-                    attack_point = directed_hit_stillPuck(bot_pos,puck_pos,[1,-1])
-                    attack_point = hit_stillPuck_to_target_pos(bot_pos,puck_pos,[puck_topPos,center_y])
-                    bot_points = [self.body.position, attack_point]
+                    #attack_point = directed_hit_stillPuck(bot_pos,puck_pos,[1,-1])
+                    #attack_point = hit_stillPuck_to_target_pos(bot_pos,puck_pos,[puck_topPos,center_y])
+                    p1,p2 = hit_stillPuck_to_target_pos3(bot_pos,puck_pos,[puck_topPos,center_y])
+                    bot_points = [self.body.position, p1,p2]
                     bot_speed = self.maxSpeed
-                    self.path = [bot_points,[bot_speed],0]
+                    self.path = [bot_points,[bot_speed,bot_speed],0]
                     
 
 
@@ -336,6 +337,49 @@ def hit_stillPuck_to_target_pos2(bot_position, puck_position, puck_target_positi
     bot_target_pos = bot_movement + bot_pos
 
     return bot_target_pos
+
+
+# This function attacks a still ball and aims for a given point. It also has two points
+def hit_stillPuck_to_target_pos3(bot_position, puck_position, puck_target_position):
+    bot_pos = Vec2d(bot_position[0],bot_position[1])
+    puck_pos = Vec2d(puck_position[0],puck_position[1])
+    puck_target_pos = Vec2d(puck_target_position[0],puck_target_position[1])
+
+    puck_target_vel = (puck_target_pos-puck_pos).normalized()
+
+    numerator = (bot_pos.y-puck_pos.y)*puck_target_vel.x + (puck_pos.x-bot_pos.x)*puck_target_vel.y
+    if(puck_target_vel.y >= 0):
+        extraPoint = [bottom + wall_thickness + 150,left + 100] #point at wall which the bot aims for
+    else:
+        extraPoint = [bottom + wall_thickness + 150,right - 100]
+
+    denominator = (bot_pos.y-extraPoint[1])*puck_target_vel[0] + (extraPoint[0]-bot_pos[0])*puck_target_vel[1]
+    numBuff = numerator/denominator
+    point1_x = bot_pos.x + (extraPoint[0]-bot_pos.x)*numBuff
+    point1_y = bot_pos.y + (extraPoint[1]-bot_pos.y)*numBuff
+    point1 = [point1_x,point1_y]
+    if(puck_target_vel[1] >= 0 and point1_y < extraPoint[1]):
+        point1 = extraPoint
+    elif (puck_target_vel[1] < 0 and point1_y > extraPoint[1]):
+        point1 = extraPoint
+
+    point1 = Vec2d(point1[0],point1[1])
+
+    bot_collision_point = point1 + puck_target_vel*pusher_radius # where at the pusher the impact is gonna be
+    puck_collision_point = puck_pos - puck_target_vel*puck_radius # where at the puck the impact is gonna be
+    
+    bot_movement = puck_collision_point - bot_collision_point
+    bot_movement = bot_movement*1.2
+
+    # global point
+    point2 = bot_movement + point1
+
+    return point1, point2
+
+
+    
+
+
 
     
 
