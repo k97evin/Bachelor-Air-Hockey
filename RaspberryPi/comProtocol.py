@@ -144,27 +144,43 @@ class SerialCom():
         return data
         
      
-
-    def writeData(self,command,*args):
-        data = f"<{command.value}:"
-        self.sendtCommandsLock.acquire()
-        self.sendtCommands.append(command.value)
-        self.sendtCommandsLock.release()
-
-        for arg in args:
-            data += f"{arg},"
-        data = data[:-1] + ">"
-
-        self.sema.acquire()
-        self.ser.write((data.encode('utf-8')))
+    def readData(self, command):
         args = []
         if self.checkIfReturnValue(command):
+            data = f"<{command.value}:"
+
+            self.sendtCommandsLock.acquire()
+            self.sendtCommands.append(command.value)
+            self.sendtCommandsLock.release()
+
+            self.sema.acquire()
+            self.ser.write((data.encode('utf-8')))
+
             self.waitForResponse(command)
             self.lastArgsLock.acquire()
             args = self.lastRecievedArgs 
             self.lastArgsLock.release()
 
+        else:
+            print("Use writeData")
+
         return args
+
+    def writeData(self,command,*args):
+        if self.checkIfReturnValue(command):
+            print("Use readData")
+        else:
+            data = f"<{command.value}:"
+            self.sendtCommandsLock.acquire()
+            self.sendtCommands.append(command.value)
+            self.sendtCommandsLock.release()
+
+            for arg in args:
+                data += f"{arg},"
+            data = data[:-1] + ">"
+
+            self.sema.acquire()
+            self.ser.write((data.encode('utf-8')))
 
 
 
