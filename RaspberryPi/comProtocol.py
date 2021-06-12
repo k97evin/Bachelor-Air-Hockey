@@ -147,7 +147,7 @@ class SerialCom():
     def readData(self, command):
         args = []
         if self.checkIfReturnValue(command):
-            data = f"<{command.value}:"
+            data = f"<{command.value}>"
 
             self.sendtCommandsLock.acquire()
             self.sendtCommands.append(command.value)
