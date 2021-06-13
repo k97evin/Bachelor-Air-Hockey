@@ -171,7 +171,7 @@ WindowManager:
         pos_hint: {"center_x":0.5, "y":0.01}
         font_size: root.font_size_buttons
         on_press:
-            # Start game fans all shit
+            root.Start_btn()
     Button:
         text: "Restart Game"
         background_color: 1,0.75,0
@@ -187,7 +187,7 @@ WindowManager:
         pos_hint: {"center_x":0.5, "y":0.15}
         font_size: root.font_size_buttons
         on_press:
-            # End game fans all shit
+            root.Stop_btn()
 
     Button:
         text: "+"

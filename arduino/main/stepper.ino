@@ -56,7 +56,7 @@ void goto_zero(){
   //deactivating stepper enable
   digitalWrite(enablePin,HIGH);
 
-  int homing_speed = 15;
+  int homing_speed = 30;
  
   // --- Zero y-axis ---//
   stepperL->setSpeedInHz(homing_speed);
