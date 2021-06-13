@@ -1,6 +1,6 @@
 COLOR: h_min h_max s_min s_max v_min v_max;
  
-LAST: 41 84 81 255 71 255;
+LAST: 20 35 98 255 74 244;
 BLUE: 100 121 185 255 71 255;
 YELLOW: 20 35 98 255 74 244;
 GREEN: 41 84 81 255 71 255;

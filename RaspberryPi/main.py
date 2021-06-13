@@ -22,8 +22,8 @@ def main():
     try:
         app = MyApp()
         app.run()
-    except:
-        print("Internal disater occured... restart application.")
+    except Exception as e:
+        print("Exception: ",str(e))
         os._exit(1)
 
 if __name__ == "__main__":

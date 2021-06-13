@@ -1,5 +1,6 @@
 #import kivy
 from os import truncate
+from pickle import FALSE, TRUE
 from comProtocol import SerialCom, Commands
 from videoStream import VideoStream
 from globfile import *
@@ -47,9 +48,14 @@ class InitializeWindow(Screen):
     font_size = 25
     interval = 0
     interval_search = ". "
+    interval_zero = ". "
+    interval_move = 0
+    moved = 0
     color_red = 1,0,0
     color_green = 0,1,0
     color_white = 1,1,1
+    robot_move = False
+    robot_homing = False
     
     
     def switch(self, *args):
@@ -68,22 +74,38 @@ class InitializeWindow(Screen):
 
     def Update(self, *args):
         self.interval += 0.05
-        self.ids.progressbar.value += 0.1
+        self.ids.progressbar.value += 0.05
 
         aruco_corner, roi = camera.corner_detection()
         aruco_robot = camera.robot_detection()
+        bot_pos = camera.get_robot_coordinates_roi()
+
 
         if roi == True:
             self.ids.roi.text = "Found"
             self.ids.roi.color = self.color_green
+            self.ids.roi_id.text = ""
         elif self.interval < 1 and roi == False:
             self.ids.roi.text = "Searching " + self.interval_search
             self.interval_search += ". "
             self.ids.roi.color = self.color_white
             if len(self.interval_search) > 6: self.interval_search = ". "
         else: 
+            self.interval_move += 1
+            i = 0
+            self.ids.roi_id.text = ""
             self.ids.roi.text = "Not Found"
             self.ids.roi.color = self.color_red
+            for corner in aruco_corner:
+                if corner == False:
+                    self.ids.roi_id.text += str(i) + " "
+                i += 1
+            if self.interval_move == 6 and self.moved < 3:
+                
+                self.moved += 1
+                serialCom.writeData(Commands.MOVE,50,0,100)
+                self.interval_move = 0
+
 
         if aruco_robot == True: 
             self.ids.robot.text = "Found"
@@ -91,6 +113,48 @@ class InitializeWindow(Screen):
         else:
             self.ids.robot.text = "Not Found"
             self.ids.robot.color = self.color_red
+
+        if aruco_robot == True and roi == True:
+            if not self.robot_move:
+                self.RobotMoveToZero()
+                self.robot_move = True
+                
+            self.ids.zero.text = "Moving to zero point"
+
+
+        if 70 < bot_pos.x < 81 and 70 < bot_pos.y < 81:
+            self.ids.zero.text = "zeroing " + self.interval_zero
+            self.interval_zero += ". "
+            if len(self.interval_zero) > 6: self.interval_zero = ". "
+            if not self.robot_homing:
+                serialCom.writeData(Commands.ZERO)
+                self.robot_homing = True
+
+            
+
+
+    def RobotMoveToZero(self):
+        speed = 150
+        for _ in range(10):
+            bot_pos = camera.get_robot_coordinates_roi()
+            if bot_pos != -1:
+                #print("bot_pos:",bot_pos)
+                x_dist = 0.0
+                y_dist = 0.0
+                if bot_pos.x > 80:
+                    x_dist = 80.0 - bot_pos.x
+                if bot_pos.y > 80.0:
+                    y_dist = 80.0 - bot_pos.y
+                
+                
+                if x_dist < 0.0 or y_dist < 0.0:
+                    serialCom.writeData(Commands.MOVE(int(x_dist),int(y_dist), speed))
+                    time.sleep(1)
+                break
+            else:
+                serialCom.writeData(Commands.MOVE(10, 10, 20))
+                time.sleep(1)
+
 
     
 
@@ -447,7 +511,6 @@ class CalibrationWindow(Screen):
     color_white = 1,1,1
     DoneHoming = False
     
-    i = 0
     def on_enter(self, *args):
         # called when this Screen is displayed
         self.StartClock()
@@ -462,44 +525,39 @@ class CalibrationWindow(Screen):
         self.clock_interval.cancel()
 
     def Update(self, *args):
-        # self.i += 1
-        # if int(self.ids.pos_x.text) < 10:
-        #     self.ids.pos_x.text = "  " + str(self.i)
-        # elif int(self.ids.pos_x.text) < 100:
-        #     self.ids.pos_x.text = " " + str(self.i)   
-        # else:  
-        #     self.ids.pos_x.text = str(self.i)    
-
-        # if int(self.ids.pos_y.text) < 10:
-        #     self.ids.pos_y.text = "  " + str(self.i)
-        # elif int(self.ids.pos_y.text) < 100:
-        #     self.ids.pos_y.text = " " + str(self.i)   
-        # else:  
-        #     self.ids.pos_y.text = str(self.i)
-
         # Get info from arucomarkers
-        arucomarkers = [1,1,1,1,1]
-        aruco = arucomarkers
+        aruco_corner, roi = camera.corner_detection()
+        aruco_robot = camera.robot_detection()
 
-        if all(aruco[:-1]):
+        if roi == True: 
             self.ids.roi.text = "Found"
-            self.ids.roi.color = self.color_green 
-        else:
-            self.ids.roi.text = "Not Found"
             self.ids.roi.color = self.color_green
-        if aruco[-1]:
+            self.ids.roi_id.text = ""
+        
+        else:
+            i = 0
+            self.ids.roi_id.text = ""
+            self.ids.roi.text = "Not Found"
+            self.ids.roi.color = self.color_red
+            for corner in aruco_corner:
+                if corner == False:
+                    self.ids.roi_id.text += str(i) + " "
+                i += 1
+            
+
+        if aruco_robot == True:
             self.ids.robot_aruco.text = "Found"
             self.ids.robot_aruco.color = self.color_green
         else:
             self.ids.robot_aruco.text = "Not Found"
-            self.ids.robot_aruco.color = self.color_red  
+            self.ids.robot_aruco.color = self.color_red 
 
         if serialCom.getLastReceivedMessage() == "Done: zero": 
             self.ids.MoveTo_btn.disabled = False
             self.DoneHoming = True
 
         if self.DoneHoming: 
-            bot_pos = serialCom.writeData(Commands.GET_BOTPOS)
+            bot_pos = serialCom.readData(Commands.GET_BOTPOS)
             self.ids.pos_x.text = str(int(bot_pos[0]) + 1)
             self.ids.pos_y.text = str(int(bot_pos[1]) + 1)
 
@@ -576,9 +634,6 @@ class CalibrationWindow(Screen):
     
     def Homing(self):
         serialCom.writeData(Commands.ZERO)
-        
-            
-            
             
         
 
