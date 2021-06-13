@@ -83,4 +83,7 @@ class Bot():
         else:
             return -1
 
+    def attack(self):
+        
+
 
