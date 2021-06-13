@@ -78,13 +78,16 @@ class InitializeWindow(Screen):
 
         aruco_corner, roi = camera.corner_detection()
         aruco_robot = camera.robot_detection()
-        bot_pos = camera.get_robot_coordinates_roi()
+        bot_pos = -1
 
 
         if roi == True:
             self.ids.roi.text = "Found"
             self.ids.roi.color = self.color_green
             self.ids.roi_id.text = ""
+            bot_pos = camera.get_robot_coordinates_roi()
+            print("fant")
+
         elif self.interval < 1 and roi == False:
             self.ids.roi.text = "Searching " + self.interval_search
             self.interval_search += ". "
@@ -110,6 +113,7 @@ class InitializeWindow(Screen):
         if aruco_robot == True: 
             self.ids.robot.text = "Found"
             self.ids.robot.color = self.color_green
+            print("fant robot")
         else:
             self.ids.robot.text = "Not Found"
             self.ids.robot.color = self.color_red
@@ -119,7 +123,9 @@ class InitializeWindow(Screen):
                 self.RobotMoveToZero()
                 self.robot_move = True
                 
+                
             self.ids.zero.text = "Moving to zero point"
+            print("Moving")
 
 
         if 70 < bot_pos.x < 81 and 70 < bot_pos.y < 81:
@@ -129,6 +135,8 @@ class InitializeWindow(Screen):
             if not self.robot_homing:
                 serialCom.writeData(Commands.ZERO)
                 self.robot_homing = True
+
+        # LEGGE TIL ROBOT FERDIG MED HOMING SLIK AT CALIBRATION WINDOW UNDISABLE MOVETO BUTTON
 
             
 
