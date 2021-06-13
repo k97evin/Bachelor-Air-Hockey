@@ -12,15 +12,17 @@ space.damping = 0.9
 FPS = 90
 
 # Draw text on display
-font = pygame.font.SysFont('freesansbold.ttf', 32)
+#font = pygame.font.SysFont('freesansbold.ttf', 32)
+font = pygame.font.SysFont('freesansbold.ttf', 50)
 text = font.render('m/s: 0', True, CYAN)
 textRect = text.get_rect()
-textRect.center = (100, 16)
-
+#textRect.center = (100, 16)
+textRect.center = (120, 26)
 
 text2 = font.render('Bot mode: ' + "None", True, CYAN)
 textRect2 = text2.get_rect()
-textRect2.center = (500, 16)
+#textRect2.center = (500, 16)
+textRect2.center = (500, 26)
 
 
 class Wall():
@@ -175,11 +177,13 @@ while running:
     if j >= 20:
         text = font.render("v = " + str(round(Puck.body.velocity.length/700,2)) + " m/s", True, CYAN)
         textRect = text.get_rect()
-        textRect.center = (100, 16)
+        #textRect.center = (100, 16)
+        textRect.center = (120, 26)
 
         text2 = font.render("Bot mode: " + Bot.command, True, CYAN)
         textRect2 = text2.get_rect()
-        textRect2.center = (500, 16)
+        #textRect2.center = (500, 16)
+        textRect2.center = (500, 26)
         j = 0
 
 pygame.quit()

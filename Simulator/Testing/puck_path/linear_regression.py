@@ -19,12 +19,15 @@ Y_pred = linear_regressor.predict(X)  # make predictions
 
 plt.scatter(X, Y)
 plt.plot(X, Y_pred, color='red')
+plt.xlabel("Angle inn [rad]")
+plt.ylabel("Angle out [rad]")
 plt.show()
 
 a =linear_regressor.predict([[10]])
 print(type(a))
 print(a[0][0])
 
+print(X)
 
 print(Path.cwd())
 
