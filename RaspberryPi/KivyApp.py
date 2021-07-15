@@ -4,6 +4,7 @@ from pickle import FALSE, TRUE
 from comProtocol import SerialCom, Commands
 from videoStream import VideoStream
 from globfile import *
+from bot import Bot
 import threading
 #import time
 from kivy.app import App
@@ -36,24 +37,35 @@ Config.write()
 
 # Serial object to communicate
 try:
-    serialCom = SerialCom("COM6", 115200)
+    serialCom = SerialCom('/dev/ttyACM0', 115200)
     serialCom.connect()
 except:
     print("Could not open port")
 
 camera = VideoStream()
 camera.start()
+robot = Bot(camera,serialCom)
+
+done_zeroing = False
+ROI_found = False
 
 class InitializeWindow(Screen):
     font_size = 25
     interval = 0
     interval_search = ". "
     interval_zero = ". "
+    interval_move = 0
+    moved = 0
     color_red = 1,0,0
     color_green = 0,1,0
     color_white = 1,1,1
     robot_move = False
     robot_homing = False
+    roi_found = False
+    robot_finding_attempt = 0
+    i = 0
+    All_completed = False
+    
     
     
     def switch(self, *args):
@@ -61,65 +73,109 @@ class InitializeWindow(Screen):
 
     def on_enter(self, *args):
         self.StartClock()
+        print("start")
 
     def on_leave(self, *args):
         self.StopClock()
     
     def StartClock(self):
-        self.clock_interval = Clock.schedule_interval(self.Update, 1.0/2)
+        print("startclock")
+        self.clock_interval = Clock.schedule_interval(self.Update2, 1.0)
     def StopClock(self, *args):
         self.clock_interval.cancel()
 
-    def Update(self, *args):
-        self.interval += 0.05
-        self.ids.progressbar.value += 0.05
+    def Update2(self, *args):
+        if not self.All_completed:
+            self.interval += 0.4
+            #self.ids.progressbar.value += 0.4
 
-        aruco_corner, roi = camera.corner_detection()
-        aruco_robot = camera.robot_detection()
-        bot_pos = camera.get_robot_coordinates_roi()
-
-
-        if roi == True:
-            self.ids.roi.text = "Found"
-            self.ids.roi.color = self.color_green
-            self.ids.roi_id.text = ""
-        elif self.interval < 1 and roi == False:
-            self.ids.roi.text = "Searching " + self.interval_search
-            self.interval_search += ". "
-            self.ids.roi.color = self.color_white
-            if len(self.interval_search) > 6: self.interval_search = ". "
-        else: 
-            i = 0
-            self.ids.roi_id.text = ""
-            self.ids.roi.text = "Not Found"
-            self.ids.roi.color = self.color_red
-            for corner in aruco_corner:
-                if corner == False:
-                    self.ids.roi_id.text += str(i) + " "
-                i += 1
-
-        if aruco_robot == True: 
-            self.ids.robot.text = "Found"
-            self.ids.robot.color = self.color_green
-        else:
-            self.ids.robot.text = "Not Found"
-            self.ids.robot.color = self.color_red
-
-        if aruco_robot == True and roi == True:
-            if not self.robot_move:
-                self.RobotMoveToZero()
-                self.robot_move = True
-                
-            self.ids.zero.text = "Moving to zero point"
+            aruco_corner, roi = camera.corner_detection()
+            aruco_robot = camera.robot_detection()
+            bot_pos = -1
 
 
-        if 70 < bot_pos.x < 81 and 70 < bot_pos.y < 81:
-            self.ids.zero.text = "zeroing " + self.interval_zero
-            self.interval_zero += ". "
-            if len(self.interval_zero) > 6: self.interval_zero = ". "
-            if not self.robot_homing:
-                serialCom.writeData(Commands.ZERO)
-                self.robot_homing = True
+            if roi == True:
+                self.ids.roi.text = "Found"
+                self.ids.roi.color = self.color_green
+                self.ids.roi_id.text = ""
+                bot_pos = camera.get_robot_coordinates_roi()
+                self.roi_found = True
+                global ROI_found
+                ROI_found = True
+                print("fant")
+
+            elif self.interval < 1 and roi == False and not self.roi_found:
+                self.ids.roi.text = "Searching " + self.interval_search
+                self.interval_search += ". "
+                self.ids.roi.color = self.color_white
+                if len(self.interval_search) > 6: self.interval_search = ". "
+            else: 
+                if not self.roi_found:
+                    self.interval_move += 1
+                    i = 0
+                    self.ids.roi_id.text = ""
+                    self.ids.roi.text = "Not Found"
+                    self.ids.roi.color = self.color_red
+                    for corner in aruco_corner:
+                        if corner == False:
+                            self.ids.roi_id.text += str(i) + " "
+                        i += 1
+                    if self.interval_move == 6 and self.moved < 3:
+                        self.moved += 1
+                        serialCom.writeData(Commands.MOVE,50,0,100)
+                        print("kjorer")
+                        print(self.moved)
+                        self.interval_move = 0
+                else:
+                    pass
+
+
+            if aruco_robot == True: 
+                self.ids.robot.text = "Found"
+                self.ids.robot.color = self.color_green
+                print("fant robot")
+            else:
+                self.ids.robot.text = "Not Found"
+                self.ids.robot.color = self.color_red
+
+            if aruco_robot == True and self.roi_found == True:
+                if not self.robot_move:
+                    self.RobotMoveToZero()
+                    self.robot_move = True
+                    
+                    
+                self.ids.zero.text = "Moving to zero point"
+                print("Moving")
+
+            if self.roi_found:
+                self.i += 1
+
+                if bot_pos != -1 and self.robot_homing == False:
+                    if 70 < bot_pos.x < 81 and 70 < bot_pos.y < 81:
+                        # self.ids.zero.text = "zeroing " + self.interval_zero
+                        # self.interval_zero += ". "
+                        # if len(self.interval_zero) > 6: self.interval_zero = ". "
+                        if not self.robot_homing:
+                            serialCom.writeData(Commands.ZERO)
+                            print("zero1")
+                            self.robot_homing = True
+                            self.All_completed = True
+
+                elif self.robot_finding_attempt < 10 and self.i < 4:
+                    serialCom.writeData(Commands.MOVE,10,10,20)
+                    self.robot_finding_attempt += 1
+                    self.i = 0
+
+                else:
+                    serialCom.writeData(Commands.ZERO)
+                    self.robot_homing = True
+                    print("zero2")
+                    print(self.All_completed)
+                    self.All_completed = True
+                    
+        if serialCom.getLastReceivedMessage() == "Done: zero":
+            self.parent.current = "Main"
+
 
             
 
@@ -140,11 +196,12 @@ class InitializeWindow(Screen):
                 
                 if x_dist < 0.0 or y_dist < 0.0:
                     serialCom.writeData(Commands.MOVE(int(x_dist),int(y_dist), speed))
-                    time.sleep(1)
                 break
             else:
                 serialCom.writeData(Commands.MOVE(10, 10, 20))
-                time.sleep(1)
+    
+    def Solenoid_btn(self, push):
+        serialCom.writeData(Commands.SOLENOID, push)
 
 
     
@@ -163,6 +220,9 @@ class PlayGameWindow(Screen):
     font_size_score = 175
     font_size = 20
     font_size_buttons = 25
+
+    def on_leave(self, *args):
+        self.StopGame()
 
     def ScorePlayer(self, increment):
         self.score_player = int(self.ids.score_player.text)
@@ -191,6 +251,24 @@ class PlayGameWindow(Screen):
     def RestartGame(self):
         self.ids.score_player.text = "0"
         self.ids.score_robot.text = "0"
+
+    def StartGame(self):
+        serialCom.writeData(Commands.FAN,1)
+        serialCom.writeData(Commands.MOVE_TO,100,table_center_y,1000)
+        robot.startAlgorithm()
+        self.ids.start_game.disabled = False
+
+    def StopGame(self):
+        serialCom.writeData(Commands.FAN,0)
+        serialCom.writeData(Commands.MOVE_TO,100,table_center_y,250)
+        robot.stopAlgorithm()
+        self.ids.start_game.disabled = False
+        
+
+
+    def Solenoid_btn(self, push):
+        serialCom.writeData(Commands.SOLENOID, push)
+        
     
 
 class LiveCalculationWindow(Screen):
@@ -371,7 +449,7 @@ class ColorDetectionWindow(Screen):
         #print(data)
 
     def UpdateColors(self): 
-        
+        #camera.puck_color(self.hue_min,self.hue_max,self.sat_min,self.sat_max,self.val_min, self.val_min)
         try:
             self.lock.acquire()
             self.last_col = "{0} {1} {2} {3} {4} {5}".format(self.hue_min, self.hue_max, self.sat_min, self.sat_max, self.val_min, self.val_max) 
@@ -520,6 +598,7 @@ class CalibrationWindow(Screen):
         aruco_corner, roi = camera.corner_detection()
         aruco_robot = camera.robot_detection()
 
+        
         if roi == True: 
             self.ids.roi.text = "Found"
             self.ids.roi.color = self.color_green
@@ -551,6 +630,13 @@ class CalibrationWindow(Screen):
             bot_pos = serialCom.readData(Commands.GET_BOTPOS)
             self.ids.pos_x.text = str(int(bot_pos[0]) + 1)
             self.ids.pos_y.text = str(int(bot_pos[1]) + 1)
+
+        global ROI_found
+        if ROI_found == True:
+            self.ids.roi.text = "Found"
+            self.ids.roi.color = self.color_green
+            self.ids.roi_id.text = ""
+            self.ids.MoveTo_btn.disabled = False
 
         
 
@@ -628,8 +714,42 @@ class CalibrationWindow(Screen):
             
         
 
-class SettingsWindow(Screen):
-    pass
+class CameraWindow(Screen):
+    def on_enter(self, *args):
+        # called when this Screen is displayed
+        self.StartClock()
+    
+    def on_leave(self, *args):
+        self.StopClock()
+
+    def StartClock(self):
+        self.clock_interval = Clock.schedule_interval(self.Update, 1.0/10)
+    def StopClock(self, *args):
+        self.clock_interval.cancel()
+
+    def Update(self, *args):
+        #frame, _ = camera.undistort_camera()
+        puck_pos = -1
+        font = cv2.FONT_HERSHEY_DUPLEX
+        
+
+        global ROI_found
+
+        if ROI_found:
+            frame, _, puck_pos = camera.get_puck_coordinates()
+            if puck_pos == -1:
+                cv2.putText(frame, "Not Found", (60, 30), font, 1, (0, 0, 0),  1,  cv2.LINE_8)
+            else:
+                cv2.putText(frame, "(" + str(int(puck_pos[0])) + "," + str(int(puck_pos[1])) + ")", (60, 30), font, 1, (0, 0, 0),  1,  cv2.LINE_8)
+
+        else: frame = camera.frame
+
+
+        texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr') 
+        #if working on RASPBERRY PI, use colorfmt='rgba' here instead, but stick with "bgr" in blit_buffer. 
+        texture.blit_buffer(frame.tobytes(order=None), colorfmt='bgr', bufferfmt='ubyte')
+        texture.flip_vertical()
+        self.ids.image.texture = texture
 
 class WindowManager(ScreenManager):
     pass
@@ -684,7 +804,7 @@ class MyApp(App):
     #     self.parent.current = "Main"
     #     print(3)        
 
-if __name__ == "__main__":
-    MyApp().run()
+# if __name__ == "__main__":
+#     MyApp().run()
 
 
