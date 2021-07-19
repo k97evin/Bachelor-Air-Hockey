@@ -1,5 +1,5 @@
 #include "FastAccelStepper.h"
-
+// With the current stepper pins selected the AVRStepperPins.h li.....
 
 //Stepper pins
 #define dirPin_L 27
@@ -21,8 +21,8 @@
 
 
 //Variables
-int motorSpeed = 4000; //maximum steps per second (about 3rps / at 16 microsteps)  //max 8000
-int motorAccel = 25000; //steps/second/second to accelerate  //max 31000
+int motorSpeed = 1000; //maximum steps per second (about 3rps / at 16 microsteps)  //max 8000
+int motorAccel = 31000; //steps/second/second to accelerate  //max 31000
 int SPR = 400; // Steps Per Rev
 
 int i = 0;
@@ -34,9 +34,10 @@ float radius = 25.205;
 
 //const int ANT_POINTS = 13;
 //float pointsArray[ANT_POINTS][2] = {{100,350},{600,600},{100,600},{600,100},{100,100},{100,600},{600,600},{600,100},{100,100},{100,600},{600,600},{600,100},{100,100}};
-const int ANT_POINTS = 7;
+//const int ANT_POINTS = 7;
 float pointsArray[ANT_POINTS][2] = {{150,150},{550,550},{150,150},{550,550},{150,150},{550,550},{150,150}};
-// const int ANT_POINTS = sizeof(pointsArray);
+
+const int ANT_POINTS = sizeof(pointsArray)/8;
 int pointNum = 0;
 
 int time = 0;
@@ -101,7 +102,7 @@ int thetaR(float x, float y, bool steps){
 
 void goto_zero(){
   digitalWrite(enablePin,HIGH);
-  int homing_speed = 15;
+  int homing_speed = 25;
  
   // --- Zero y-axis ---//
   stepperL->setSpeedInHz(homing_speed);
@@ -187,6 +188,8 @@ void MoveToPosition(float x, float y){
 void setup() {
   // Pins and Serial
   Serial.begin(9600);
+  Serial.print("HER:");
+  Serial.println(String(sizeof(pointsArray)));
   pinMode(enablePin, OUTPUT);
   pinMode(endSwitch_L,INPUT);
   pinMode(endSwitch_R,INPUT);
@@ -248,10 +251,14 @@ void setup() {
   stepperR->setSpeedInHz(motorSpeed);
 
   time = millis();
+
+  Serial.print("her:");
+  Serial.println(String(sizeof(pointsArray)));
 }
 
 void loop(){
   MoveToPosition(pointsArray[pointNum][0],pointsArray[pointNum][1]);
+  delayMicroseconds(500);
   if(stepperL->targetPos() == stepperL->getCurrentPosition() && stepperR->targetPos() == stepperR->getCurrentPosition()){
     if(pointNum == ANT_POINTS-1){
       pointNum = 0;
@@ -267,6 +274,7 @@ void loop(){
       stepperL->setSpeedInHz(motorSpeed);
       stepperR->setSpeedInHz(motorSpeed);
       Serial.println(motorSpeed);
+      delayMicroseconds(500);
     }
   }
 }

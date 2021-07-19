@@ -38,6 +38,7 @@ Config.write()
 # Serial object to communicate
 try:
     serialCom = SerialCom('/dev/ttyACM0', 115200)
+    #serialCom = SerialCom("COM6", 115200)
     serialCom.connect()
 except:
     print("Could not open port")

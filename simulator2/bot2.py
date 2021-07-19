@@ -169,7 +169,7 @@ class Bot():
                 # ------- DEFENCE ------- #
 
                 # If the puck reaches the goal within 0.5s, Defence algoritm is chosen
-                if tdiff < 1.5:
+                if tdiff < 1:
                     self.command = "defence"
 
                     #point = defenceReflectionPos(puck_pos,puck_last_velocity,[1,0])
