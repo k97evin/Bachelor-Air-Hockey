@@ -77,16 +77,16 @@ void setup() {
   delay(1000);
 
   // --- stepper program --- //
-  stepperL->setSpeedInHz(100); //steps/sec
-  stepperL->setAcceleration(300); //steps/sec^2 
-  stepperR->setSpeedInHz(100);
-  stepperR->setAcceleration(300);   
+  stepperL->setSpeedInHz(150); //steps/sec
+  stepperL->setAcceleration(400); //steps/sec^2 
+  stepperR->setSpeedInHz(150);
+  stepperR->setAcceleration(400);   
 
   //moving left stepper 400 steps (1 round)
   Serial.println("Moving left stepper");
   stepperL->move(400); 
 
-  delay(3000);
+  delay(5000);
 
   //moving right stepper 100 steps (1 round)
   Serial.println("Moving right stepper");
