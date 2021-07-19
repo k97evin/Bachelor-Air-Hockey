@@ -21,6 +21,7 @@ class Commands(Enum):
     GET_BOTPOS = 12
     GET_STEPPERPOS = 13
     GET_LIMIT_SWITCHES = 14
+    MOVE_OUT_OF_LIMITSWITCHES = 15
 
 
 class SerialCom():

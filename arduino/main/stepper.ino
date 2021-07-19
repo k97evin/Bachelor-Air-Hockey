@@ -159,27 +159,29 @@ void MoveOutOfLimitSwitch(){
   stepperL->setSpeedInHz(moving_speed);
   stepperR->setSpeedInHz(moving_speed);
 
-  while(digitalRead(endSwitch_L) == LOW{
-    stepperL->runForward();
-    stepperR->runForward();
-    delay(25);
-  }
-
-  while(digitalRead(endSwitch_U) == LOW{
-    stepperL->runForward();
-    stepperR->runBackward();
-    delay(25);
-  }
-
-  while(digitalRead(endSwitch_R) == LOW{
+  while(digitalRead(endSwitch_L) == LOW){
     stepperL->runBackward();
     stepperR->runBackward();
     delay(25);
   }
 
-  while(digitalRead(endSwitch_D) == LOW{
+  while(digitalRead(endSwitch_U) == LOW){
     stepperL->runBackward();
     stepperR->runForward();
+    delay(25);
+  }
+
+  while(digitalRead(endSwitch_R) == LOW){
+    stepperL->runForward();
+    stepperR->runForward();
+
+    delay(25);
+  }
+
+  while(digitalRead(endSwitch_D) == LOW){
+    stepperL->runForward();
+    stepperR->runBackward();
+
     delay(25);
   }
 

@@ -18,21 +18,21 @@ WindowManager:
     CalibrationWindow:
         id: calibration_window
         manager: window_manager
-    CameraWindow:
-        id: camera_window
+    SettingsWindow:
+        id: settings_window
         manager: window_manager
 
 <InitializeWindow>:
     name: "Init"
 
-    # Button:
-            #     text: "trykk"
-            #     size_hint: 0.5, 0.1
-            #     pos_hint: {"center_x":0.5, "y":0.75}
-            #     id: button
-            #     on_release:
-            #         #root.manager.transition.direction = "right"
-            #         app.root.current = "Main"
+    Button:
+        text: "trykk"
+        size_hint: 0.5, 0.1
+        pos_hint: {"center_x":0.5, "y":0.75}
+        id: button
+        on_release:
+            #root.manager.transition.direction = "right"
+            app.root.current = "Main"
         
     Label:
         text: "ROI:"
@@ -51,7 +51,7 @@ WindowManager:
         size_hint: 0.2, 0.1
     Label:
         id: roi
-        text: "Searching ."
+        text: "Searching "
         font_size: root.font_size
         pos_hint: {"center_x":0.6, "y":0.6}
         size_hint: 0.2, 0.1
@@ -128,13 +128,13 @@ WindowManager:
             app.root.current = "Calibration"
 
     Button:
-        text: "Camera"
+        text: "Settings"
         size_hint: 0.5, 0.1
         pos_hint: {"center_x":0.5, "y":0.15}
         font_size: root.font_size_buttons
         on_release:
             root.manager.transition.direction = "left"
-            app.root.current = "Camera"
+            app.root.current = "Settings"
 
     Button:
         text: "Quit"
@@ -198,7 +198,7 @@ WindowManager:
         font_size: root.font_size_buttons + 27
         color: 0,0.8,0
         on_release:
-            root.ScorePlayer(1)
+            root.Score(1)
     Button:
         text: "-"
         size_hint: 0.12, 0.12
@@ -206,7 +206,7 @@ WindowManager:
         font_size: root.font_size_buttons + 50 
         color: 0.8,0,0
         on_release:
-            root.ScorePlayer(-1)
+            root.Score(-1)
 
     Button:
         text: "+"
@@ -215,7 +215,7 @@ WindowManager:
         font_size: root.font_size_buttons + 27 
         color: 0,0.8,0
         on_release:
-            root.ScoreRobot(1)
+            root.Score(1,True)
     Button:
         text: "-"
         size_hint: 0.12, 0.12
@@ -223,7 +223,7 @@ WindowManager:
         font_size: root.font_size_buttons + 50
         color: 0.8,0,0
         on_release:
-            root.ScoreRobot(-1)
+            root.Score(-1,True)
     Label:
         id: score_robot
         font_size: root.font_size_score
@@ -457,6 +457,7 @@ WindowManager:
 
 
 
+
 <CalibrationWindow>:
     name: "Calibration"
 
@@ -664,34 +665,22 @@ WindowManager:
         on_press:
             root.NumPadPress(0)
 
+
     
 
-<CameraWindow>:
-    name: "Camera"
+<SettingsWindow>:
+    name: "Settings"
 
     Button:
-        text: "Back"
-        font_size: 25
-        pos_hint: {"center_x": 0.11, "y": 0.01} 
-        size_hint: 0.2, 0.12
+        text: "Go Back"
         on_release:
             root.manager.transition.direction = "right"
             app.root.current = "Main"
 
-    BoxLayout:
-        orientation: "vertical"
-        pos_hint: {"center_x": 0.5, "center_y": 0.55} 
-        size_hint: 1, 1
-
-        Image:
-            id: image
-            allow_stretch: False
-            keep_ratio: False
-
 
 <MoveToPopupWindow>:
     Label:
-        text: "Out of boundaries! Boundaries are:\n\n     X: [ 70 , 620 ]\n     Y: [ 65 , 635 ]\n\nTouch outside the box to continue"
+        text: "Out of boundaries! Boundaries are:\n\n     X: [ 70 , 620 ]\n     Y: [ 65 , 735 ]\n\nTouch outside the box to continue"
         size_hint: 0.6, 0.1
         pos_hint: {"center_x":0.5, "center_y":0.5}
         font_size: 20

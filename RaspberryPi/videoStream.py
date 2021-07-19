@@ -116,7 +116,6 @@ class VideoStream():
 
         # Find all the aruco markers in the frame
         corners, ids, rejected = aruco.detectMarkers(gray, dictionary=self.ARUCO_DICT, parameters=self.arucoParameters)
-
         # Removing robots ID if it found
         if np.all(ids is not None):     
             remove_pos = -1
@@ -126,9 +125,8 @@ class VideoStream():
                     
             if remove_pos != -1:
                 ids = np.delete(ids,remove_pos)
-                corners.pop(remove_pos)
-                
-                
+                corners.pop(remove_pos)    
+  
         if np.all(ids is not None and len(ids) == 4):           
             for id, corner in zip(ids, corners):
 
@@ -229,10 +227,10 @@ class VideoStream():
                 if id == 4:
                     pixel_x = (corner[0][0][0] + corner[0][1][0] + corner[0][2][0] + corner[0][3][0]) / 4
                     pixel_y = (corner[0][0][1] + corner[0][1][1] + corner[0][2][1] + corner[0][3][1]) / 4
-                    
+
                     center = Vec2d(pixel_x,pixel_y)
 
-        return pixel_x
+        return center
 
     def get_robot(self, frame, roi):
         frame, _ = self.undistort_camera()
