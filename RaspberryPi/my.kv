@@ -18,21 +18,21 @@ WindowManager:
     CalibrationWindow:
         id: calibration_window
         manager: window_manager
-    SettingsWindow:
-        id: settings_window
+    CameraWindow:
+        id: camera_window
         manager: window_manager
 
 <InitializeWindow>:
     name: "Init"
 
-    Button:
-        text: "trykk"
-        size_hint: 0.5, 0.1
-        pos_hint: {"center_x":0.5, "y":0.75}
-        id: button
-        on_release:
-            #root.manager.transition.direction = "right"
-            app.root.current = "Main"
+    # Button:
+            #     text: "trykk"
+            #     size_hint: 0.5, 0.1
+            #     pos_hint: {"center_x":0.5, "y":0.75}
+            #     id: button
+            #     on_release:
+            #         #root.manager.transition.direction = "right"
+            #         app.root.current = "Main"
         
     Label:
         text: "ROI:"
@@ -128,13 +128,13 @@ WindowManager:
             app.root.current = "Calibration"
 
     Button:
-        text: "Settings"
+        text: "Camera"
         size_hint: 0.5, 0.1
         pos_hint: {"center_x":0.5, "y":0.15}
         font_size: root.font_size_buttons
         on_release:
             root.manager.transition.direction = "left"
-            app.root.current = "Settings"
+            app.root.current = "Camera"
 
     Button:
         text: "Quit"
@@ -161,22 +161,24 @@ WindowManager:
         pos_hint: {"center_x":0.89, "y":0.01}
         font_size: root.font_size_buttons
         on_press:
-            # solenoid high    
+            root.Solenoid_btn(1)  
         on_release:
-            # solenoid low
+            root.Solenoid_btn(0)
     Button:
+        id: start_game
         text: "Start Game"
         background_color: 0,1,0
         size_hint: 0.2, 0.12
-        pos_hint: {"center_x":0.5, "y":0.01}
+        pos_hint: {"center_x":0.395, "y":0.14}
         font_size: root.font_size_buttons
-        on_press:
-            root.Start_btn()
+        on_release:
+            root.StartGame()
+
     Button:
         text: "Restart Game"
         background_color: 1,0.75,0
         size_hint: 0.2, 0.12
-        pos_hint: {"center_x":0.5, "y":0.25}
+        pos_hint: {"center_x":0.605, "y":0.14}
         font_size: root.font_size_buttons
         on_press:
             root.RestartGame()
@@ -184,10 +186,10 @@ WindowManager:
         text: "End Game"
         background_color: 1,0,0
         size_hint: 0.2, 0.12
-        pos_hint: {"center_x":0.5, "y":0.15}
+        pos_hint: {"center_x":0.5, "y":0.01}
         font_size: root.font_size_buttons
         on_press:
-            root.Stop_btn()
+            root.StopGame()
 
     Button:
         text: "+"
@@ -664,14 +666,27 @@ WindowManager:
 
     
 
-<SettingsWindow>:
-    name: "Settings"
+<CameraWindow>:
+    name: "Camera"
 
     Button:
-        text: "Go Back"
+        text: "Back"
+        font_size: 25
+        pos_hint: {"center_x": 0.11, "y": 0.01} 
+        size_hint: 0.2, 0.12
         on_release:
             root.manager.transition.direction = "right"
             app.root.current = "Main"
+
+    BoxLayout:
+        orientation: "vertical"
+        pos_hint: {"center_x": 0.5, "center_y": 0.55} 
+        size_hint: 1, 1
+
+        Image:
+            id: image
+            allow_stretch: False
+            keep_ratio: False
 
 
 <MoveToPopupWindow>:

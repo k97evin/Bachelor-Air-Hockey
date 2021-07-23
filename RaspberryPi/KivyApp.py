@@ -33,12 +33,12 @@ from kivy.uix.popup import Popup
 from kivy.config import Config
 Config.set('graphics', 'width', '800')
 Config.set('graphics', 'height', '480')
-Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 Config.write()
 
 # Serial object to communicate
 try:
-    serialCom = SerialCom("COM6", 115200)
+    serialCom = SerialCom('/dev/ttyACM0', 115200)
+    #serialCom = SerialCom("COM6", 115200)
     serialCom.connect()
 except:
     print("Could not open port")
@@ -87,8 +87,8 @@ class InitializeWindow(Screen):
 
     def Update2(self, *args):
         if not self.All_completed:
-            self.interval += 0.2
-            self.ids.progressbar.value += 0.2
+            self.interval += 0.4
+            #self.ids.progressbar.value += 0.4
 
             aruco_corner, roi = camera.corner_detection()
             aruco_robot = camera.robot_detection()
@@ -173,10 +173,10 @@ class InitializeWindow(Screen):
                     print("zero2")
                     print(self.All_completed)
                     self.All_completed = True
+                    
+        if serialCom.getLastReceivedMessage() == "Done: zero":
+            self.parent.current = "Main"
 
-
-
-        # LEGGE TIL ROBOT FERDIG MED HOMING SLIK AT CALIBRATION WINDOW UNDISABLE MOVETO BUTTON
 
             
 
@@ -200,6 +200,9 @@ class InitializeWindow(Screen):
                 break
             else:
                 serialCom.writeData(Commands.MOVE(10, 10, 20))
+    
+    def Solenoid_btn(self, push):
+        serialCom.writeData(Commands.SOLENOID, push)
 
 
     
@@ -218,6 +221,9 @@ class PlayGameWindow(Screen):
     font_size_score = 175
     font_size = 20
     font_size_buttons = 25
+
+    def on_leave(self, *args):
+        self.StopGame()
 
     def ScorePlayer(self, increment):
         self.score_player = int(self.ids.score_player.text)
@@ -247,11 +253,23 @@ class PlayGameWindow(Screen):
         self.ids.score_player.text = "0"
         self.ids.score_robot.text = "0"
 
-    def Start_btn(self):
+    def StartGame(self):
+        serialCom.writeData(Commands.FAN,1)
+        serialCom.writeData(Commands.MOVE_TO,100,table_center_y,1000)
         robot.startAlgorithm()
+        self.ids.start_game.disabled = False
 
-    def Stop_btn(self):
+    def StopGame(self):
+        serialCom.writeData(Commands.FAN,0)
+        serialCom.writeData(Commands.MOVE_TO,100,table_center_y,250)
         robot.stopAlgorithm()
+        self.ids.start_game.disabled = False
+        
+
+
+    def Solenoid_btn(self, push):
+        serialCom.writeData(Commands.SOLENOID, push)
+        
     
 
 class LiveCalculationWindow(Screen):
@@ -432,7 +450,7 @@ class ColorDetectionWindow(Screen):
         #print(data)
 
     def UpdateColors(self): 
-        self.puck_color(self.hue_min,self.hue_max,self.sat_min,self.sat_max,self.val_min, self.val_min)
+        #camera.puck_color(self.hue_min,self.hue_max,self.sat_min,self.sat_max,self.val_min, self.val_min)
         try:
             self.lock.acquire()
             self.last_col = "{0} {1} {2} {3} {4} {5}".format(self.hue_min, self.hue_max, self.sat_min, self.sat_max, self.val_min, self.val_max) 
@@ -697,8 +715,42 @@ class CalibrationWindow(Screen):
             
         
 
-class SettingsWindow(Screen):
-    pass
+class CameraWindow(Screen):
+    def on_enter(self, *args):
+        # called when this Screen is displayed
+        self.StartClock()
+    
+    def on_leave(self, *args):
+        self.StopClock()
+
+    def StartClock(self):
+        self.clock_interval = Clock.schedule_interval(self.Update, 1.0/10)
+    def StopClock(self, *args):
+        self.clock_interval.cancel()
+
+    def Update(self, *args):
+        #frame, _ = camera.undistort_camera()
+        puck_pos = -1
+        font = cv2.FONT_HERSHEY_DUPLEX
+        
+
+        global ROI_found
+
+        if ROI_found:
+            frame, _, puck_pos = camera.get_puck_coordinates()
+            if puck_pos == -1:
+                cv2.putText(frame, "Not Found", (60, 30), font, 1, (0, 0, 0),  1,  cv2.LINE_8)
+            else:
+                cv2.putText(frame, "(" + str(int(puck_pos[0])) + "," + str(int(puck_pos[1])) + ")", (60, 30), font, 1, (0, 0, 0),  1,  cv2.LINE_8)
+
+        else: frame = camera.frame
+
+
+        texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr') 
+        #if working on RASPBERRY PI, use colorfmt='rgba' here instead, but stick with "bgr" in blit_buffer. 
+        texture.blit_buffer(frame.tobytes(order=None), colorfmt='bgr', bufferfmt='ubyte')
+        texture.flip_vertical()
+        self.ids.image.texture = texture
 
 class WindowManager(ScreenManager):
     pass

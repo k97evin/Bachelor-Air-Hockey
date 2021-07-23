@@ -32,8 +32,8 @@ class VideoStream():
         #self.lower_range_puck_color = np.array([99,186,130])
         #self.upper_range_puck_color = np.array([159,255,255])        
         # GREEN
-        self.lower_range_puck_color = np.array([47,55,185])
-        self.upper_range_puck_color = np.array([90,204,255])
+        self.lower_range_puck_color = np.array([41,81,71])
+        self.upper_range_puck_color = np.array([84,255,255])
 
         """ READING PICKLE-FILE AND IMPORT CAMERA CALIBRATION MATRICES """
         calib_result_pickle = pickle.load(open("camera_calib_pickle.p", "rb" ))
