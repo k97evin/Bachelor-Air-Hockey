@@ -19,6 +19,10 @@
 
 #define friBryter 43
 
+//Defining stepper motors
+FastAccelStepperEngine engine = FastAccelStepperEngine();
+FastAccelStepper *stepperL = NULL;
+FastAccelStepper *stepperR = NULL;
 
 void setup() {
   // Pins and Serial
