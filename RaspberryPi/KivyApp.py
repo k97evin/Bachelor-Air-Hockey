@@ -33,6 +33,7 @@ from kivy.uix.popup import Popup
 from kivy.config import Config
 Config.set('graphics', 'width', '800')
 Config.set('graphics', 'height', '480')
+Config.set('kivy', 'keyboard_mode', 'systemandmulti')
 Config.write()
 
 # Serial object to communicate

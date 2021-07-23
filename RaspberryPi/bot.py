@@ -38,6 +38,15 @@ class Bot():
         j = 0
         k = 0
         puck_pos_vel_points = []
+        time.sleep(3)
+        while len(puck_pos_vel_points) < 1:
+            frame2, current_time, puck_pos = self.camera.get_puck_coordinates()
+            if puck_pos != -1:
+                puck_pos_vel_points.append([puck_pos, current_time])
+                last_puck_pos = puck_pos
+        puck_dir = Vec2d.zero()
+
+
         while started:
             _, current_time, puck_pos = self.camera.get_puck_coordinates()
 
@@ -52,17 +61,22 @@ class Bot():
                         i += 1
                         
                         puck_vel = puck.velocity(puck_pos_vel_points)
+                        
                         points, times, last_velocity = puck.path_points2(puck_vel,puck_pos)
                         #print("Her: " , puck_vel, " Points:", points, " times:", times, " lastVel:",last_velocity)
                         moveTo_y = self.defence(points,last_velocity)
-                        if moveTo_y != -1:
-                            self.serialCom.writeData(Commands.MOVE_TO,pusher_bottomPos,round(moveTo_y,2),100)
+
+                        if moveTo_y != -1 and moveTo_y < 600 and moveTo_y > 100:
+                            self.serialCom.writeData(Commands.MOVE_TO,pusher_bottomPos+50,round(moveTo_y,2),3000)
+                            time.sleep(0.05)
+                        elif last_velocity[0]>=0:
+                            self.serialCom.writeData(Commands.MOVE_TO,100,table_center_y,3000)
                             time.sleep(0.05)
 
                         puck_pos_vel_points.pop(0) 
                         i = 0
                         time.sleep(0.001)
-
+            
 
             self.startedLock.acquire()
             started = self.started
@@ -84,6 +98,4 @@ class Bot():
             return -1
 
     def attack(self):
-        
-
-
+        pass
