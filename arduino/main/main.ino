@@ -35,8 +35,8 @@
 #define fan_taco_bot 19
 
 // Variables
-int motorSpeed = 1000; //maximum steps per second (about 3rps / at 16 microsteps)  //max 8000
-int motorAccel = 31000; //steps/second/second to accelerate  //max 31000
+int motorSpeed = 1000; // mm/s
+int motorAccel = 31000; // steps/s^2 to accelerate  //max 31000
 int SPR = 400; // Steps Per Rev
 
 int i = 0;
@@ -78,16 +78,12 @@ void setup() {
     Serial.println("Couldnt connect to steppers");
   }
 
-  // --- Zeroing --- //
-  //goto_zero();
-  //Serial.println("done with zero");
 
   // --- Stepper starting speed --- //
   stepperL->setSpeedInHz(motorSpeed);
   stepperR->setSpeedInHz(motorSpeed);
 
   time = millis();
-  Serial.println("okei");
   digitalWrite(enablePin,LOW);
   digitalWrite(fan_pwm_bot,HIGH);
   digitalWrite(fan_pwm_player,HIGH);

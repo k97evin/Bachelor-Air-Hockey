@@ -48,7 +48,8 @@ enum Commands{
   LIGHT = 11,
   GET_BOTPOS = 12,
   GET_STEPPERPOS = 13,
-  GET_LIMIT_SWITCHES = 14
+  GET_LIMIT_SWITCHES = 14,
+  MOVE_OUT_OF_LIMITSWITCHES = 15
 };
 
 enum Arguments{
@@ -95,7 +96,7 @@ void extractCommand(){
   char * strtokIndx;
   strtokIndx = strtok(tempChars,":"); 
   command = atoi(strtokIndx);
-  if(command == MOVE or command == MOVE_TO){
+  if(command == MOVE or command == MOVE_TO or command == CENTER){
     for(int i = 0; i < numOfArguments; i++){
       strtokIndx = strtok(NULL, ",");
       argsFloat[i] = atof(strtokIndx);
@@ -217,6 +218,11 @@ void executeCommand(){
       sprintf(sendArgument,"%d,%d,%d,%d",digitalRead(endSwitch_L),digitalRead(endSwitch_R),digitalRead(endSwitch_U),digitalRead(endSwitch_D));
       sendData();
       //sprintf(sendArgument,"%d,%d,%d,%d",1,0,1,1);
+      break;
+    case MOVE_OUT_OF_LIMITSWITCHES:
+      followBotpath_bool = false;
+      sendData();
+      MoveOutOfLimitSwitch();
       break;
     default:
       sendData();
