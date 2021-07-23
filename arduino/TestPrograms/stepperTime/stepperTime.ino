@@ -1,3 +1,12 @@
+/*
+
+This script takes the time of the bot to finish a path.
+Uncomment the desired path below to change path.
+
+*/
+
+
+
 #include "FastAccelStepper.h"
 // With the current stepper pins selected the FastAccelStepper library needs to be changed. 
 // Open the file ...\Arduino\libraries\FastAccelStepper\src\AVRStepperPins.h and change line 27 to: #define FAS_TIMER_MODULE 5
@@ -22,7 +31,7 @@
 
 
 //Variables
-int motorSpeed = 2300; //maximum steps per second (about 3rps / at 16 microsteps)  //max 8000
+int motorSpeed = 2300; // mm/s
 int motorAccel = 31000; //steps/second/second to accelerate  //max 31000
 int SPR = 400; // Steps Per Rev
 
@@ -38,10 +47,10 @@ float radius = 25.205;
 // --- DIFFERENT PATHS --- //
 
 //Only stepper right
-//float pointsArray[][2] = {{150,150},{550,550}};
+//float pointsArray[][2] = {{150,150},{550,550},{150,150}};
 
 //Only stepper left
-//float pointsArray[][2] = {{150,550},{550,150}};
+//float pointsArray[][2] = {{150,550},{550,150},{150,550}};
 
 //Square path
 //float pointsArray[][2] = {{150,150},{150,550},{550,550},{550,150},{150,150}};
@@ -54,16 +63,13 @@ int pointNum = 0;
 
 int time = 0;
 bool done = false;
+
+//Defining stepper motors
 FastAccelStepperEngine engine = FastAccelStepperEngine();
 FastAccelStepper *stepperL = NULL;
 FastAccelStepper *stepperR = NULL;
 
 
-
-//void MoveToPosition(float x, float y){
-// stepperL->moveTo(thetaL(x,y,true));
-// stepperR->moveTo(thetaR(x,y,true));
-//}
 
 void setup() {
   // Pins and Serial
@@ -74,10 +80,7 @@ void setup() {
   pinMode(endSwitch_U, INPUT);
   pinMode(endSwitch_D, INPUT);
   pinMode(friBryter,INPUT);
-  
-  Serial.println("Begynner");
 
-  //TCCR5B = TCCR5B & B11111000 | B00000001;
   
   // --- Connecting to steppers --- //
   Connect_to_steppers();
@@ -106,7 +109,6 @@ void loop(){
     if(stepperL->targetPos() == stepperL->getCurrentPosition() && stepperR->targetPos() == stepperR->getCurrentPosition()){
       if(pointNum == ANT_POINTS-1){
         Serial.println("Time used:" + String((millis()-time)/1000.0) + "s");
-        //Serial.println("Tid: " + String(millis()-time));
         delay(10000);
         done = true;
       }

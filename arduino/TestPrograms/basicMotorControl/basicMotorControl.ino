@@ -1,3 +1,11 @@
+/*
+
+This script is a minimum program for moving both stepper motors 1 round 
+with FastAccelStepper library
+
+*/
+
+
 #include "FastAccelStepper.h"
 
 // With the current stepper pins selected the FastAccelStepper library needs to be changed. 
